@@ -1214,7 +1214,7 @@
     <div class="top-bar">
       <div class="brand">
         <div class="brand-icon" aria-hidden="true">
-          <span class="icon-lime">👽</i></span>
+          <span class="icon-lime">👽</span>
           <span class="icon-classic">👽</span>
         </div>
         <div>
@@ -1227,9 +1227,11 @@
           <i data-lucide="palette"></i>
           <span id="theme-toggle-label">Tema</span>
         </button>
-        <button id="export-macros" class="btn"><i data-lucide="download"></i> Exportar macros</button>
-        <button id="import-macros" class="btn"><i data-lucide="upload"></i> Importar macros</button>
-        <button id="link-file" class="btn"><i data-lucide="hard-drive"></i> Vincular Arquivo Local</button>
+        <button id="export-macros" class="btn" type="button" title="Exporta somente as macros"><i data-lucide="download"></i> Exportar macros</button>
+        <button id="import-macros" class="btn" type="button" title="Importa somente macros"><i data-lucide="upload"></i> Importar macros</button>
+        <button id="download-backup" class="btn accent" type="button" title="Baixa JSON completo (macros + ponto + ocorrências)"><i data-lucide="hard-drive-download"></i> Baixar backup</button>
+        <button id="import-backup" class="btn accent" type="button" title="Abre um JSON de backup e importa com confirmação"><i data-lucide="hard-drive-upload"></i> Importar backup</button>
+        <button id="link-file" class="btn" type="button" title="Vincula um arquivo local para salvar automaticamente"><i data-lucide="link"></i> Vincular auto-save</button>
         <span id="file-link-status" class="file-badge" data-state="disconnected" role="status" aria-live="polite">Nenhum arquivo vinculado</span>
       </div>
     </div>
@@ -1609,7 +1611,7 @@
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<!-- SCRIPT 0: PERSISTENCIA UNIFICADA (BACKUP EM ARQUIVO LOCAL) -->
+<!-- SCRIPT 0: PERSISTENCIA UNIFICADA (BACKUP SEGURO) -->
 <script>
 (() => {
   'use strict';
@@ -1618,10 +1620,12 @@
   const DB_NAME = 'rf_unified_storage_v1';
   const DB_STORE = 'handles';
   const HANDLE_KEY = 'unified_json_handle';
-  const SUPPORTED = typeof window.showSaveFilePicker === 'function';
+  const SAVE_SUPPORTED = typeof window.showSaveFilePicker === 'function';
+  const OPEN_SUPPORTED = typeof window.showOpenFilePicker === 'function';
   const IDB_SUPPORTED = typeof indexedDB !== 'undefined';
 
   let handle = null;
+  let lastSaveLabel = '';
 
   function idbOpen() {
     return new Promise((resolve, reject) => {
@@ -1690,12 +1694,119 @@
     } catch (e) { return false; }
   }
 
+  function summarize(obj) {
+    const macrosLen = Array.isArray(obj && obj.macros) ? obj.macros.length : 0;
+    const pontoLen = obj && obj.ponto && Array.isArray(obj.ponto.records) ? obj.ponto.records.length : 0;
+    const usesLen = obj && obj.ocorrencias_uses ? Object.keys(obj.ocorrencias_uses).length : 0;
+    const updated = obj && obj.updatedAt ? String(obj.updatedAt) : '—';
+    return { macrosLen, pontoLen, usesLen, updated };
+  }
+
   function hasMeaningfulData(obj) {
     if (!obj) return false;
-    const macrosLen = Array.isArray(obj.macros) ? obj.macros.length : 0;
-    const pontoLen = obj.ponto && Array.isArray(obj.ponto.records) ? obj.ponto.records.length : 0;
-    const usesLen = obj.ocorrencias_uses ? Object.keys(obj.ocorrencias_uses).length : 0;
-    return macrosLen > 0 || pontoLen > 0 || usesLen > 0;
+    const s = summarize(obj);
+    return s.macrosLen > 0 || s.pontoLen > 0 || s.usesLen > 0;
+  }
+
+  function isLocalEmpty() {
+    return !hasMeaningfulData(gatherUnified());
+  }
+
+  function formatTime(d) {
+    try {
+      return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
+  }
+
+  function backupFilename() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return 'rod_facilidades_dados_' + y + '-' + m + '-' + day + '.json';
+  }
+
+  function downloadBackup() {
+    try {
+      const data = gatherUnified();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = backupFilename();
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+      const s = summarize(data);
+      alert('Backup baixado com sucesso.\n\n• ' + s.macrosLen + ' macros\n• ' + s.pontoLen + ' registros de ponto\n• ' + s.usesLen + ' ocorrências contadas');
+    } catch (e) {
+      alert('Não foi possível gerar o backup.');
+    }
+  }
+
+  async function importBackup() {
+    if (!OPEN_SUPPORTED) {
+      alert('Este navegador não permite abrir arquivos locais via seletor moderno. Use Chrome ou Edge.');
+      return;
+    }
+    try {
+      const [picked] = await window.showOpenFilePicker({
+        multiple: false,
+        types: [{ description: 'Arquivo JSON', accept: { 'application/json': ['.json'] } }]
+      });
+      const file = await picked.getFile();
+      const text = await file.text();
+      let obj;
+      try {
+        obj = JSON.parse(text);
+      } catch (e) {
+        alert('Arquivo JSON inválido.');
+        return;
+      }
+      if (!obj || typeof obj !== 'object') {
+        alert('Arquivo JSON inválido.');
+        return;
+      }
+      // Accept unified format or macros-only exports
+      if (!Array.isArray(obj.macros) && Array.isArray(obj)) {
+        obj = { macros: obj, ponto: { version: 1, records: [] }, ocorrencias_uses: {} };
+      }
+      if (!Array.isArray(obj.macros) && obj.kind === 'rf-macros' && Array.isArray(obj.macros) === false) {
+        // no-op guard
+      }
+      if (!Array.isArray(obj.macros)) {
+        alert('Este arquivo não contém a lista de macros (campo "macros").');
+        return;
+      }
+      const s = summarize(obj);
+      if (!hasMeaningfulData(obj)) {
+        alert('Este arquivo está vazio (sem macros, ponto ou ocorrências). Nada foi importado.');
+        return;
+      }
+      const ok = confirm(
+        'Importar backup?\n\n' +
+        'Arquivo: ' + (file.name || 'backup.json') + '\n' +
+        '• ' + s.macrosLen + ' macros\n' +
+        '• ' + s.pontoLen + ' registros de ponto\n' +
+        '• ' + s.usesLen + ' ocorrências contadas\n' +
+        '• updatedAt: ' + s.updated + '\n\n' +
+        'OK = substituir os dados deste navegador pelos do arquivo.\n' +
+        'Cancelar = não alterar nada.'
+      );
+      if (!ok) return; // Cancel changes NOTHING
+      if (!applyImported(obj)) {
+        alert('Falha ao gravar os dados importados.');
+        return;
+      }
+      alert('Backup importado com sucesso! A página será recarregada.');
+      location.reload();
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+      alert('Não foi possível importar o backup.');
+    }
   }
 
   async function verifyPermission(h, request) {
@@ -1726,28 +1837,51 @@
     if (!handle) return;
     try {
       const ok = await verifyPermission(handle, false);
-      if (!ok) { setStatus('warning', (handle.name || 'arquivo.json') + ' — clique para reconectar'); return; }
-      await writeToHandle(handle, gatherUnified());
-      setStatus('connected', 'Salvo em ' + (handle.name || 'arquivo.json'));
+      if (!ok) {
+        setStatus('warning', (handle.name || 'arquivo.json') + ' — permissão expirada · clique em Vincular');
+        return;
+      }
+
+      const local = gatherUnified();
+      // ANTI-WIPE: never overwrite a file that has data with empty local state
+      if (!hasMeaningfulData(local)) {
+        const existing = await readExisting(handle);
+        if (hasMeaningfulData(existing)) {
+          setStatus('warning', 'Auto-save bloqueado (local vazio, arquivo tem dados)');
+          return;
+        }
+      }
+
+      await writeToHandle(handle, local);
+      lastSaveLabel = formatTime(new Date());
+      setStatus('connected', 'Auto-save · ' + (handle.name || 'arquivo.json') + ' · ' + lastSaveLabel);
     } catch (e) {
       setStatus('error', 'Erro ao salvar no arquivo local');
     }
   }
 
   async function connect() {
-    if (!SUPPORTED) {
-      alert('Este navegador não permite vincular um arquivo local (recurso disponível no Chrome, Edge ou Opera). Os dados continuam sendo salvos normalmente neste navegador — use "Exportar macros" para backups manuais.');
+    if (!SAVE_SUPPORTED) {
+      alert('Vincular auto-save requer Chrome ou Edge. Use "Baixar backup" / "Importar backup" neste navegador.');
       return;
     }
 
+    // Reconnect existing handle if permission was lost
     if (handle) {
       const already = await verifyPermission(handle, false);
       if (!already) {
         const ok = await verifyPermission(handle, true);
-        if (ok) { setStatus('connected', 'Conectado a ' + (handle.name || 'arquivo.json')); await persist(); }
-        else setStatus('warning', 'Permissão negada — tente novamente');
+        if (ok) {
+          setStatus('connected', 'Reconectado a ' + (handle.name || 'arquivo.json'));
+          await persist();
+        } else {
+          setStatus('warning', 'Permissão negada — tente novamente');
+        }
         return;
       }
+      // Already connected: optional force save
+      await persist();
+      return;
     }
 
     try {
@@ -1757,25 +1891,45 @@
       });
 
       const existing = await readExisting(picked);
-      handle = picked;
-      await idbSet(HANDLE_KEY, handle);
 
       if (hasMeaningfulData(existing)) {
-        const wantsImport = confirm(
-          'Este arquivo já contém dados salvos (macros, ponto ou ocorrências).\n\n' +
-          'OK = IMPORTAR os dados do arquivo para este navegador (substitui os dados locais atuais).\n' +
-          'Cancelar = MANTER os dados deste navegador e sobrescrever o arquivo com eles.'
+        const s = summarize(existing);
+        const choice = confirm(
+          'Este arquivo já contém dados:\n' +
+          '• ' + s.macrosLen + ' macros\n' +
+          '• ' + s.pontoLen + ' registros de ponto\n' +
+          '• ' + s.usesLen + ' ocorrências\n' +
+          '• updatedAt: ' + s.updated + '\n\n' +
+          'OK = IMPORTAR do arquivo para este navegador (e vincular auto-save).\n' +
+          'Cancelar = apenas VINCULAR para saves futuros (NÃO sobrescreve o arquivo agora; NÃO importa).'
         );
-        if (wantsImport) {
-          applyImported(existing);
-          alert('Dados importados com sucesso! A página será recarregada para aplicar as macros, o ponto e as ocorrências salvas no arquivo.');
+        if (choice) {
+          if (!applyImported(existing)) {
+            alert('Falha ao importar os dados do arquivo. Vínculo cancelado.');
+            return;
+          }
+          handle = picked;
+          await idbSet(HANDLE_KEY, handle);
+          alert('Dados importados e auto-save vinculado. A página será recarregada.');
           location.reload();
           return;
         }
+        // Cancel = connect only, do NOT persist/overwrite now
+        handle = picked;
+        await idbSet(HANDLE_KEY, handle);
+        setStatus('connected', 'Vinculado (sem sobrescrever) · ' + (handle.name || 'arquivo.json'));
+        return;
       }
 
+      // File empty or new: safe to write current local state
+      handle = picked;
+      await idbSet(HANDLE_KEY, handle);
+      if (isLocalEmpty()) {
+        setStatus('connected', 'Vinculado · ' + (handle.name || 'arquivo.json') + ' (local vazio)');
+        return;
+      }
       await persist();
-      setStatus('connected', 'Conectado a ' + (handle.name || 'arquivo.json'));
+      setStatus('connected', 'Auto-save · ' + (handle.name || 'arquivo.json') + (lastSaveLabel ? ' · ' + lastSaveLabel : ''));
     } catch (e) {
       if (e && e.name === 'AbortError') return;
       setStatus('error', 'Não foi possível vincular o arquivo');
@@ -1783,20 +1937,34 @@
   }
 
   async function init() {
-    if (!SUPPORTED) { setStatus('disconnected', 'Backup em arquivo indisponível neste navegador'); return; }
+    if (!SAVE_SUPPORTED) {
+      setStatus('disconnected', 'Auto-save indisponível · use Baixar/Importar backup');
+      return;
+    }
     const stored = await idbGet(HANDLE_KEY);
-    if (!stored) { setStatus('disconnected', 'Nenhum arquivo vinculado'); return; }
+    if (!stored) {
+      setStatus('disconnected', 'Nenhum arquivo vinculado');
+      return;
+    }
     handle = stored;
     const ok = await verifyPermission(handle, false);
-    setStatus(ok ? 'connected' : 'warning', (ok ? 'Conectado a ' : '') + (handle.name || 'arquivo.json') + (ok ? '' : ' — clique para reconectar'));
+    if (ok) {
+      setStatus('connected', 'Auto-save · ' + (handle.name || 'arquivo.json'));
+    } else {
+      setStatus('warning', (handle.name || 'arquivo.json') + ' — permissão expirada · clique em Vincular');
+    }
   }
 
+  const downloadBtn = document.getElementById('download-backup');
+  const importBtn = document.getElementById('import-backup');
   const linkBtn = document.getElementById('link-file');
+  if (downloadBtn) downloadBtn.addEventListener('click', downloadBackup);
+  if (importBtn) importBtn.addEventListener('click', importBackup);
   if (linkBtn) linkBtn.addEventListener('click', connect);
 
   init();
 
-  window.RFStorage = { notifyChange: persist };
+  window.RFStorage = { notifyChange: persist, downloadBackup: downloadBackup, importBackup: importBackup };
 })();
 </script>
 
