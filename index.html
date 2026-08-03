@@ -3874,44 +3874,43 @@
     knownIds.clear();
     if (!client || !session) return;
 
-    let query = client
+    const { data, error } = await client
       .from('team_messages')
       .select('id, user_id, recipient_id, display_name, body, created_at')
       .order('created_at', { ascending: true })
-      .limit(300);
-
-    if (dmPeer) {
-      const uid = session.user.id;
-      const pid = dmPeer.id;
-      // (me -> peer) OR (peer -> me)
-      query = query.or(
-        'and(user_id.eq.' + uid + ',recipient_id.eq.' + pid + '),' +
-        'and(user_id.eq.' + pid + ',recipient_id.eq.' + uid + ')'
-      );
-    } else {
-      query = query.is('recipient_id', null);
-    }
-
-    const { data, error } = await query;
+      .limit(400);
 
     if (error) {
-      // Fallback if column recipient_id does not exist yet
-      if (String(error.message || '').toLowerCase().includes('recipient_id')) {
-        msgsEl.innerHTML = '<div class="rf-chat-empty">Para ativar chat privado, rode no SQL Editor do Supabase o script de <strong>recipient_id</strong> (está no comentário do código).<br><small>' + esc(error.message) + '</small></div>';
+      const msg = String(error.message || '');
+      if (msg.toLowerCase().includes('recipient_id')) {
+        msgsEl.innerHTML = '<div class="rf-chat-empty">Para ativar chat privado, rode no SQL Editor do Supabase o script de <strong>recipient_id</strong>.<br><small>' + esc(msg) + '</small></div>';
       } else {
-        msgsEl.innerHTML = '<div class="rf-chat-empty">Não foi possível carregar as mensagens.<br><small>' + esc(error.message) + '</small></div>';
+        msgsEl.innerHTML = '<div class="rf-chat-empty">Não foi possível carregar as mensagens.<br><small>' + esc(msg) + '</small></div>';
       }
       setOnline(false);
       return;
     }
-    if (!data || !data.length) {
+
+    const uid = session.user.id;
+    let rows = Array.isArray(data) ? data.slice() : [];
+    // Filtra no client (mais confiável que filtros compostos no PostgREST)
+    if (dmPeer) {
+      const pid = dmPeer.id;
+      rows = rows.filter((r) =>
+        (r.user_id === uid && r.recipient_id === pid) ||
+        (r.user_id === pid && r.recipient_id === uid)
+      );
+    } else {
+      rows = rows.filter((r) => r.recipient_id == null);
+    }
+
+    if (!rows.length) {
       msgsEl.innerHTML = dmPeer
         ? '<div class="rf-chat-empty">Nenhuma mensagem privada ainda com <strong>' + esc(dmPeer.name) + '</strong>.<br>Envie a primeira.</div>'
         : '<div class="rf-chat-empty">Nenhuma mensagem ainda.<br>Seja o primeiro a escrever para a equipe.<br><small>Clique no nome de alguém para abrir chat privado.</small></div>';
       return;
     }
-    const uid = session.user.id;
-    data.forEach((row) => appendMessage(row, row.user_id === uid));
+    rows.forEach((row) => appendMessage(row, row.user_id === uid));
     scrollBottom();
   }
 
@@ -4030,10 +4029,10 @@
     const payload = {
       user_id: session.user.id,
       display_name: display,
-      body: body.slice(0, 2000)
+      body: body.slice(0, 2000),
+      recipient_id: dmPeer ? dmPeer.id : null
     };
-    if (dmPeer) payload.recipient_id = dmPeer.id;
-    const { error } = await client.from('team_messages').insert(payload);
+    const { data, error } = await client.from('team_messages').insert(payload).select('id, user_id, recipient_id, display_name, body, created_at').single();
     sendBtn.disabled = false;
     if (error) {
       alert('Não foi possível enviar: ' + error.message);
@@ -4041,6 +4040,9 @@
     }
     input.value = '';
     input.focus();
+    // Mostra na hora (não depende só do realtime)
+    if (data) appendMessage(data, true);
+    else await loadHistory();
   }
 
   function initUi() {
