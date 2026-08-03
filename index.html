@@ -2030,17 +2030,17 @@
 </main>
 
 <!-- CHAT INTERNO DA EQUIPE -->
-<button type="button" id="rf-chat-fab" class="rf-chat-fab" title="Chat da equipe" aria-label="Abrir chat da equipe" data-open="false">
+<button type="button" id="rf-chat-fab" class="rf-chat-fab" title="WhatsApp 2" aria-label="Abrir chat da equipe" data-open="false">
   <i data-lucide="message-circle"></i>
   <span id="rf-chat-badge" class="rf-chat-badge" data-show="false">0</span>
 </button>
 
-<aside id="rf-chat-panel" class="rf-chat-panel" data-open="false" aria-label="Chat da equipe">
+<aside id="rf-chat-panel" class="rf-chat-panel" data-open="false" aria-label="WhatsApp 2">
   <div class="rf-chat-head">
     <div class="rf-chat-head-title">
       <span id="rf-chat-dot" class="rf-chat-status-dot" data-online="false" aria-hidden="true"></span>
       <div>
-        <strong id="rf-chat-title">Chat da equipe</strong>
+        <strong id="rf-chat-title">WhatsApp 2</strong>
         <span id="rf-chat-subtitle">Rodrigo Facilidades</span>
         <span id="rf-chat-mode-pill" class="rf-chat-mode-pill" data-show="false">Privado · só vocês dois veem</span>
       </div>
@@ -3943,7 +3943,7 @@
       if (backBtn) backBtn.hidden = false;
       if (input) input.placeholder = 'Mensagem privada para ' + dmPeer.name + '…';
     } else {
-      if (titleEl) titleEl.textContent = 'Chat da equipe';
+      if (titleEl) titleEl.textContent = 'WhatsApp 2';
       subtitle.textContent = session ? 'Online' : 'Rodrigo Facilidades';
       if (modePill) modePill.dataset.show = 'false';
       if (backBtn) backBtn.hidden = true;
@@ -4128,7 +4128,7 @@
     dmPeer = null;
     dmContacts = new Map();
     setOnline(false);
-    if (titleEl) titleEl.textContent = 'Chat da equipe';
+    if (titleEl) titleEl.textContent = 'WhatsApp 2';
     subtitle.textContent = 'Rodrigo Facilidades';
     if (modePill) modePill.dataset.show = 'false';
     if (backBtn) backBtn.hidden = true;
