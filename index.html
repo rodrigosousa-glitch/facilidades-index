@@ -1204,6 +1204,341 @@
       body { padding: 14px; }
     }
 
+    /* ── CHAT INTERNO ── */
+    .rf-chat-fab {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 90;
+      width: 52px;
+      height: 52px;
+      border: none;
+      border-radius: 16px;
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-color);
+      box-shadow: var(--btn-primary-shadow), var(--shadow-lg);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+    .rf-chat-fab:hover { transform: translateY(-2px) scale(1.04); filter: brightness(1.06); }
+    .rf-chat-fab:active { transform: scale(0.97); }
+    .rf-chat-fab svg { width: 22px; height: 22px; stroke-width: 2; }
+    .rf-chat-fab[data-open="true"] { display: none; }
+    .rf-chat-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: var(--red);
+      color: #fff;
+      font: 700 10px/18px var(--font);
+      text-align: center;
+      display: none;
+    }
+    .rf-chat-badge[data-show="true"] { display: block; }
+
+    .rf-chat-panel {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 95;
+      width: min(380px, calc(100vw - 24px));
+      height: min(560px, calc(100vh - 48px));
+      display: none;
+      flex-direction: column;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--card);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+    }
+    .rf-chat-panel[data-open="true"] { display: flex; }
+
+    .rf-chat-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-elevated);
+    }
+    .rf-chat-head-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .rf-chat-head-title strong {
+      font-size: 13.5px;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .rf-chat-head-title span {
+      font-size: 11px;
+      color: var(--muted);
+      display: block;
+    }
+    .rf-chat-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted-dim);
+      flex-shrink: 0;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.04);
+    }
+    .rf-chat-status-dot[data-online="true"] {
+      background: var(--green);
+      box-shadow: 0 0 0 3px var(--green-dim), 0 0 10px rgba(52,211,153,0.35);
+    }
+    .rf-chat-head-actions { display: flex; gap: 4px; align-items: center; }
+    .rf-chat-icon-btn {
+      width: 32px;
+      height: 32px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all 0.12s ease;
+    }
+    .rf-chat-icon-btn:hover {
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .rf-chat-icon-btn svg { width: 16px; height: 16px; stroke-width: 2; }
+
+    .rf-chat-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .rf-chat-setup, .rf-chat-auth, .rf-chat-messages-wrap {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 14px;
+    }
+
+    .rf-chat-setup h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 650;
+      color: var(--text);
+    }
+    .rf-chat-setup p, .rf-chat-setup li {
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+    .rf-chat-setup ol { margin: 10px 0; padding-left: 18px; }
+    .rf-chat-setup li { margin: 6px 0; }
+    .rf-chat-setup code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.06);
+      color: var(--accent);
+      border: 1px solid var(--border);
+    }
+    .rf-chat-setup .rf-chat-warn {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(251,191,36,0.25);
+      background: var(--amber-dim);
+      color: #fde68a;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .rf-chat-auth-card {
+      margin: auto 0;
+      padding: 4px 2px 12px;
+    }
+    .rf-chat-auth-card h3 {
+      margin: 0 0 6px;
+      font-size: 14px;
+      font-weight: 650;
+      color: var(--text);
+    }
+    .rf-chat-auth-card p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+    .rf-chat-field { margin-bottom: 12px; }
+    .rf-chat-field label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .rf-chat-field input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      background: var(--bg);
+      color: var(--text);
+      font: 400 13px var(--font);
+      outline: none;
+    }
+    .rf-chat-field input:focus {
+      border-color: var(--focus-border);
+      box-shadow: var(--focus-ring);
+    }
+    .rf-chat-auth-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .rf-chat-auth-actions .btn { width: 100%; justify-content: center; }
+    .rf-chat-auth-msg {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      min-height: 18px;
+    }
+    .rf-chat-auth-msg[data-type="error"] { color: #fca5a5; }
+    .rf-chat-auth-msg[data-type="ok"] { color: #6ee7b7; }
+
+    .rf-chat-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-bottom: 8px;
+    }
+    .rf-chat-empty {
+      margin: 40px 12px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .rf-chat-msg {
+      max-width: 92%;
+      padding: 8px 11px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      align-self: flex-start;
+    }
+    .rf-chat-msg.mine {
+      align-self: flex-end;
+      background: var(--accent-dim);
+      border-color: var(--accent-border);
+    }
+    .rf-chat-msg-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+    .rf-chat-msg-author {
+      font-size: 11px;
+      font-weight: 650;
+      color: var(--accent);
+    }
+    .rf-chat-msg-time {
+      font-size: 10px;
+      color: var(--muted-dim);
+      font-variant-numeric: tabular-nums;
+    }
+    .rf-chat-msg-text {
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .rf-chat-compose {
+      border-top: 1px solid var(--border);
+      padding: 10px 12px;
+      background: var(--bg-elevated);
+      display: none;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    .rf-chat-compose[data-show="true"] { display: flex; }
+    .rf-chat-compose textarea {
+      flex: 1;
+      min-height: 40px;
+      max-height: 110px;
+      resize: none;
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--text);
+      font: 400 13px var(--font);
+      line-height: 1.4;
+      outline: none;
+    }
+    .rf-chat-compose textarea:focus {
+      border-color: var(--focus-border);
+      box-shadow: var(--focus-ring);
+    }
+    .rf-chat-send {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 10px;
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-color);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      box-shadow: var(--btn-primary-shadow);
+    }
+    .rf-chat-send:hover { filter: brightness(1.08); }
+    .rf-chat-send:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
+    .rf-chat-send svg { width: 18px; height: 18px; stroke-width: 2; }
+
+    .rf-chat-userbar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      font-size: 11.5px;
+      color: var(--muted);
+    }
+    .rf-chat-userbar[data-show="true"] { display: flex; }
+    .rf-chat-userbar strong { color: var(--text-secondary); font-weight: 600; }
+
+    @media (max-width: 520px) {
+      .rf-chat-panel {
+        right: 12px;
+        bottom: 12px;
+        width: calc(100vw - 24px);
+        height: min(70vh, calc(100vh - 24px));
+      }
+      .rf-chat-fab { right: 16px; bottom: 16px; }
+    }
+
     .hidden { display: none !important; }
   </style>
 </head>
@@ -1608,6 +1943,88 @@
     </aside>
   </div>
 </main>
+
+<!-- CHAT INTERNO DA EQUIPE -->
+<button type="button" id="rf-chat-fab" class="rf-chat-fab" title="Chat da equipe" aria-label="Abrir chat da equipe" data-open="false">
+  <i data-lucide="message-circle"></i>
+  <span id="rf-chat-badge" class="rf-chat-badge" data-show="false">0</span>
+</button>
+
+<aside id="rf-chat-panel" class="rf-chat-panel" data-open="false" aria-label="Chat da equipe">
+  <div class="rf-chat-head">
+    <div class="rf-chat-head-title">
+      <span id="rf-chat-dot" class="rf-chat-status-dot" data-online="false" aria-hidden="true"></span>
+      <div>
+        <strong>Chat da equipe</strong>
+        <span id="rf-chat-subtitle">Rodrigo Facilidades</span>
+      </div>
+    </div>
+    <div class="rf-chat-head-actions">
+      <button type="button" id="rf-chat-logout" class="rf-chat-icon-btn" title="Sair" aria-label="Sair" hidden>
+        <i data-lucide="log-out"></i>
+      </button>
+      <button type="button" id="rf-chat-close" class="rf-chat-icon-btn" title="Fechar" aria-label="Fechar chat">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+  </div>
+
+  <div id="rf-chat-userbar" class="rf-chat-userbar" data-show="false">
+    <span>Conectado como <strong id="rf-chat-user-label">—</strong></span>
+  </div>
+
+  <div class="rf-chat-body">
+    <div id="rf-chat-setup" class="rf-chat-setup">
+      <h3>Configuração necessária</h3>
+      <p>O chat usa <strong>Supabase</strong> (plano gratuito). A chave anônima pode ficar no código — a proteção real vem de <strong>login + RLS</strong>.</p>
+      <ol>
+        <li>Crie um projeto em <code>supabase.com</code></li>
+        <li>Em <strong>SQL Editor</strong>, rode o script SQL do comentário no final desta página</li>
+        <li>Em <strong>Authentication → Providers</strong>, ative Email</li>
+        <li>Em <strong>Project Settings → API</strong>, copie URL e <code>anon public</code> key</li>
+        <li>Cole em <code>RF_CHAT_CONFIG</code> no JavaScript do chat</li>
+      </ol>
+      <div class="rf-chat-warn">
+        <strong>Segurança:</strong> nunca compartilhe dados de clientes, senhas ou tokens neste chat. Use apenas para alinhamento interno. Prefira Slack/Teams/Discord da empresa para assuntos sensíveis.
+      </div>
+    </div>
+
+    <div id="rf-chat-auth" class="rf-chat-auth" hidden>
+      <div class="rf-chat-auth-card">
+        <h3>Entrar no chat</h3>
+        <p>Use o e-mail corporativo. Só quem estiver autenticado consegue ler e enviar mensagens (regra RLS).</p>
+        <div class="rf-chat-field">
+          <label for="rf-chat-email">E-mail</label>
+          <input id="rf-chat-email" type="email" autocomplete="username" placeholder="voce@empresa.com">
+        </div>
+        <div class="rf-chat-field">
+          <label for="rf-chat-password">Senha</label>
+          <input id="rf-chat-password" type="password" autocomplete="current-password" placeholder="Mín. 6 caracteres">
+        </div>
+        <div class="rf-chat-field">
+          <label for="rf-chat-display">Nome de exibição</label>
+          <input id="rf-chat-display" type="text" maxlength="40" placeholder="Como você aparece no chat">
+        </div>
+        <div class="rf-chat-auth-actions">
+          <button type="button" id="rf-chat-login" class="btn primary">Entrar</button>
+          <button type="button" id="rf-chat-signup" class="btn">Criar conta</button>
+        </div>
+        <p id="rf-chat-auth-msg" class="rf-chat-auth-msg" role="status"></p>
+      </div>
+    </div>
+
+    <div id="rf-chat-messages-wrap" class="rf-chat-messages-wrap" hidden>
+      <div id="rf-chat-messages" class="rf-chat-messages"></div>
+    </div>
+  </div>
+
+  <form id="rf-chat-compose" class="rf-chat-compose" data-show="false" autocomplete="off">
+    <textarea id="rf-chat-input" rows="1" maxlength="2000" placeholder="Mensagem para a equipe…" disabled></textarea>
+    <button type="submit" id="rf-chat-send" class="rf-chat-send" disabled title="Enviar" aria-label="Enviar">
+      <i data-lucide="send"></i>
+    </button>
+  </form>
+</aside>
 
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -3133,6 +3550,389 @@
     btn.addEventListener('click', () => {
       apply(current() === 'classic' ? 'lime' : 'classic');
     });
+  }
+})();
+</script>
+
+<!-- SCRIPT: CHAT INTERNO (Supabase) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(() => {
+  'use strict';
+
+  /**
+   * ═══════════════════════════════════════════════════════════
+   * CONFIGURAÇÃO DO CHAT — preencha após criar o projeto Supabase
+   * A chave "anon" é pública por design. A segurança vem de:
+   *   1) Authentication obrigatória
+   *   2) Row Level Security (RLS) na tabela team_messages
+   *   3) (Opcional) allowlist de e-mails no SQL
+   * ═══════════════════════════════════════════════════════════
+   */
+  const RF_CHAT_CONFIG = {
+    enabled: true,
+    supabaseUrl: 'https://xxjrfeewwwxbujodvrvo.supabase.co',
+    supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4anJmZWV3d3d4YnVqb2R2cnZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3ODA3NjAsImV4cCI6MjEwMTM1Njc2MH0.XA68lXz15ZDG9qfOGUeSf3M_S6xnld9fyBYfEPjWR5s',
+    // Opcional: restringir domínio no cadastro (validação só no cliente; RLS é a proteção real)
+    allowedEmailDomain: '' // ex: 'suaempresa.com' ou '' para qualquer e-mail
+  };
+
+  /*
+  -- Cole no SQL Editor do Supabase (uma vez):
+
+  create table if not exists public.team_messages (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references auth.users (id) on delete cascade,
+    display_name text not null check (char_length(display_name) between 1 and 40),
+    body text not null check (char_length(body) between 1 and 2000),
+    created_at timestamptz not null default now()
+  );
+
+  create index if not exists team_messages_created_at_idx
+    on public.team_messages (created_at asc);
+
+  alter table public.team_messages enable row level security;
+
+  create policy "team_messages_select_authenticated"
+    on public.team_messages for select
+    to authenticated
+    using (true);
+
+  create policy "team_messages_insert_own"
+    on public.team_messages for insert
+    to authenticated
+    with check (auth.uid() = user_id);
+
+  alter publication supabase_realtime add table public.team_messages;
+
+  -- OPCIONAL — allowlist de e-mails (troque o domínio):
+  -- create or replace function public.is_allowed_email()
+  -- returns boolean language sql stable as $$
+  --   select coalesce(
+  --     (auth.jwt() ->> 'email') ilike '%@suaempresa.com',
+  --     false
+  --   );
+  -- $$;
+  -- Depois altere as policies para: using (public.is_allowed_email())
+  -- e with check (auth.uid() = user_id and public.is_allowed_email());
+  */
+
+  const $ = (id) => document.getElementById(id);
+  const fab = $('rf-chat-fab');
+  const panel = $('rf-chat-panel');
+  const badge = $('rf-chat-badge');
+  const dot = $('rf-chat-dot');
+  const subtitle = $('rf-chat-subtitle');
+  const setupEl = $('rf-chat-setup');
+  const authEl = $('rf-chat-auth');
+  const msgsWrap = $('rf-chat-messages-wrap');
+  const msgsEl = $('rf-chat-messages');
+  const compose = $('rf-chat-compose');
+  const input = $('rf-chat-input');
+  const sendBtn = $('rf-chat-send');
+  const userbar = $('rf-chat-userbar');
+  const userLabel = $('rf-chat-user-label');
+  const logoutBtn = $('rf-chat-logout');
+  const authMsg = $('rf-chat-auth-msg');
+  const DISPLAY_KEY = 'rf_chat_display_name_v1';
+
+  let client = null;
+  let session = null;
+  let channel = null;
+  let knownIds = new Set();
+  let unread = 0;
+  let panelOpen = false;
+
+  function configured() {
+    return !!(RF_CHAT_CONFIG.enabled && RF_CHAT_CONFIG.supabaseUrl && RF_CHAT_CONFIG.supabaseAnonKey);
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  function setAuthMessage(text, type) {
+    authMsg.textContent = text || '';
+    authMsg.dataset.type = type || '';
+  }
+
+  function formatTime(iso) {
+    try {
+      return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function setOnline(on) {
+    dot.dataset.online = on ? 'true' : 'false';
+  }
+
+  function updateUnread() {
+    if (unread > 0 && !panelOpen) {
+      badge.textContent = unread > 99 ? '99+' : String(unread);
+      badge.dataset.show = 'true';
+    } else {
+      badge.dataset.show = 'false';
+      unread = 0;
+    }
+  }
+
+  function showView(name) {
+    setupEl.hidden = name !== 'setup';
+    authEl.hidden = name !== 'auth';
+    msgsWrap.hidden = name !== 'chat';
+    compose.dataset.show = name === 'chat' ? 'true' : 'false';
+    userbar.dataset.show = name === 'chat' ? 'true' : 'false';
+    logoutBtn.hidden = name !== 'chat';
+    input.disabled = name !== 'chat';
+    sendBtn.disabled = name !== 'chat';
+  }
+
+  function openPanel() {
+    panelOpen = true;
+    panel.dataset.open = 'true';
+    fab.dataset.open = 'true';
+    unread = 0;
+    updateUnread();
+    if (window.lucide) lucide.createIcons();
+    if (!msgsWrap.hidden) scrollBottom();
+  }
+
+  function closePanel() {
+    panelOpen = false;
+    panel.dataset.open = 'false';
+    fab.dataset.open = 'false';
+  }
+
+  function scrollBottom() {
+    requestAnimationFrame(() => {
+      msgsWrap.scrollTop = msgsWrap.scrollHeight;
+    });
+  }
+
+  function appendMessage(row, mine) {
+    if (!row || !row.id || knownIds.has(row.id)) return;
+    knownIds.add(row.id);
+    const empty = msgsEl.querySelector('.rf-chat-empty');
+    if (empty) empty.remove();
+
+    const el = document.createElement('div');
+    el.className = 'rf-chat-msg' + (mine ? ' mine' : '');
+    el.dataset.id = row.id;
+    el.innerHTML =
+      '<div class="rf-chat-msg-meta">' +
+        '<span class="rf-chat-msg-author">' + esc(row.display_name || 'Colega') + '</span>' +
+        '<span class="rf-chat-msg-time">' + esc(formatTime(row.created_at)) + '</span>' +
+      '</div>' +
+      '<div class="rf-chat-msg-text">' + esc(row.body) + '</div>';
+    msgsEl.appendChild(el);
+
+    if (!panelOpen && !mine) {
+      unread += 1;
+      updateUnread();
+    } else {
+      scrollBottom();
+    }
+  }
+
+  async function loadHistory() {
+    msgsEl.innerHTML = '';
+    knownIds.clear();
+    const { data, error } = await client
+      .from('team_messages')
+      .select('id, user_id, display_name, body, created_at')
+      .order('created_at', { ascending: true })
+      .limit(200);
+
+    if (error) {
+      msgsEl.innerHTML = '<div class="rf-chat-empty">Não foi possível carregar as mensagens.<br><small>' + esc(error.message) + '</small></div>';
+      setOnline(false);
+      return;
+    }
+    if (!data || !data.length) {
+      msgsEl.innerHTML = '<div class="rf-chat-empty">Nenhuma mensagem ainda.<br>Seja o primeiro a escrever para a equipe.</div>';
+      return;
+    }
+    const uid = session && session.user && session.user.id;
+    data.forEach((row) => appendMessage(row, row.user_id === uid));
+    scrollBottom();
+  }
+
+  function subscribeRealtime() {
+    if (channel) {
+      try { client.removeChannel(channel); } catch (e) {}
+      channel = null;
+    }
+    channel = client
+      .channel('team_messages_rt')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'team_messages'
+      }, (payload) => {
+        const row = payload.new;
+        const uid = session && session.user && session.user.id;
+        appendMessage(row, row && row.user_id === uid);
+      })
+      .subscribe((status) => {
+        setOnline(status === 'SUBSCRIBED');
+      });
+  }
+
+  async function enterChat(sess) {
+    session = sess;
+    const email = (sess.user && sess.user.email) || '';
+    let display = '';
+    try { display = localStorage.getItem(DISPLAY_KEY) || ''; } catch (e) {}
+    if (!display) display = (email.split('@')[0] || 'Colega').slice(0, 40);
+    userLabel.textContent = display + (email ? ' · ' + email : '');
+    subtitle.textContent = 'Online';
+    showView('chat');
+    await loadHistory();
+    subscribeRealtime();
+  }
+
+  function leaveChatUi() {
+    session = null;
+    setOnline(false);
+    subtitle.textContent = 'Rodrigo Facilidades';
+    if (channel && client) {
+      try { client.removeChannel(channel); } catch (e) {}
+      channel = null;
+    }
+    knownIds.clear();
+    msgsEl.innerHTML = '';
+    showView('auth');
+  }
+
+  function validateEmail(email) {
+    const e = String(email || '').trim().toLowerCase();
+    if (!e || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return 'Informe um e-mail válido.';
+    const domain = RF_CHAT_CONFIG.allowedEmailDomain;
+    if (domain && !e.endsWith('@' + domain.toLowerCase())) {
+      return 'Use um e-mail @' + domain;
+    }
+    return null;
+  }
+
+  async function handleLogin(isSignup) {
+    const email = $('rf-chat-email').value.trim();
+    const password = $('rf-chat-password').value;
+    const display = $('rf-chat-display').value.trim().slice(0, 40);
+    const err = validateEmail(email);
+    if (err) { setAuthMessage(err, 'error'); return; }
+    if (!password || password.length < 6) {
+      setAuthMessage('Senha com pelo menos 6 caracteres.', 'error');
+      return;
+    }
+    if (isSignup && !display) {
+      setAuthMessage('Informe um nome de exibição.', 'error');
+      return;
+    }
+    setAuthMessage(isSignup ? 'Criando conta…' : 'Entrando…', '');
+    try {
+      if (isSignup) {
+        const { data, error } = await client.auth.signUp({ email, password });
+        if (error) throw error;
+        try { localStorage.setItem(DISPLAY_KEY, display); } catch (e) {}
+        if (data.session) {
+          await enterChat(data.session);
+          setAuthMessage('');
+        } else {
+          setAuthMessage('Conta criada. Se o projeto exigir confirmação, verifique o e-mail e depois entre.', 'ok');
+        }
+      } else {
+        const { data, error } = await client.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        if (display) {
+          try { localStorage.setItem(DISPLAY_KEY, display); } catch (e) {}
+        }
+        await enterChat(data.session);
+        setAuthMessage('');
+      }
+    } catch (e) {
+      setAuthMessage((e && e.message) ? e.message : 'Falha na autenticação.', 'error');
+    }
+  }
+
+  async function sendMessage(ev) {
+    if (ev) ev.preventDefault();
+    if (!session || !client) return;
+    const body = input.value.trim();
+    if (!body) return;
+    let display = '';
+    try { display = localStorage.getItem(DISPLAY_KEY) || ''; } catch (e) {}
+    if (!display) {
+      display = ((session.user && session.user.email) || 'Colega').split('@')[0].slice(0, 40);
+    }
+    sendBtn.disabled = true;
+    const { error } = await client.from('team_messages').insert({
+      user_id: session.user.id,
+      display_name: display,
+      body: body.slice(0, 2000)
+    });
+    sendBtn.disabled = false;
+    if (error) {
+      alert('Não foi possível enviar: ' + error.message);
+      return;
+    }
+    input.value = '';
+    input.focus();
+  }
+
+  function initUi() {
+    fab.addEventListener('click', openPanel);
+    $('rf-chat-close').addEventListener('click', closePanel);
+    $('rf-chat-login').addEventListener('click', () => handleLogin(false));
+    $('rf-chat-signup').addEventListener('click', () => handleLogin(true));
+    logoutBtn.addEventListener('click', async () => {
+      if (client) await client.auth.signOut();
+      leaveChatUi();
+    });
+    compose.addEventListener('submit', sendMessage);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    if (!configured()) {
+      showView('setup');
+      subtitle.textContent = 'Não configurado';
+      return;
+    }
+
+    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+      showView('setup');
+      setupEl.querySelector('h3').textContent = 'Biblioteca Supabase não carregou';
+      return;
+    }
+
+    client = window.supabase.createClient(
+      RF_CHAT_CONFIG.supabaseUrl,
+      RF_CHAT_CONFIG.supabaseAnonKey,
+      { auth: { persistSession: true, autoRefreshToken: true } }
+    );
+
+    client.auth.getSession().then(({ data }) => {
+      if (data && data.session) enterChat(data.session);
+      else showView('auth');
+    });
+
+    client.auth.onAuthStateChange((event, sess) => {
+      if (event === 'SIGNED_OUT') leaveChatUi();
+      if (event === 'SIGNED_IN' && sess) enterChat(sess);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initUi);
+  } else {
+    initUi();
   }
 })();
 </script>
