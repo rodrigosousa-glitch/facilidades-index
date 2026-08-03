@@ -2083,18 +2083,14 @@
     <div id="rf-chat-auth" class="rf-chat-auth" hidden>
       <div class="rf-chat-auth-card">
         <h3>Entrar no chat</h3>
-        <p>Use o e-mail corporativo. Só quem estiver autenticado consegue ler e enviar mensagens (regra RLS).</p>
+        <p>Use um <strong>nome de usuário</strong> e uma senha. Não é necessário e-mail. Escolha um nome único na equipe.</p>
         <div class="rf-chat-field">
-          <label for="rf-chat-email">E-mail</label>
-          <input id="rf-chat-email" type="email" autocomplete="username" placeholder="voce@empresa.com">
+          <label for="rf-chat-display">Nome de usuário</label>
+          <input id="rf-chat-display" type="text" maxlength="40" autocomplete="username" placeholder="Ex.: rodrigo" required>
         </div>
         <div class="rf-chat-field">
           <label for="rf-chat-password">Senha</label>
           <input id="rf-chat-password" type="password" autocomplete="current-password" placeholder="Mín. 6 caracteres">
-        </div>
-        <div class="rf-chat-field">
-          <label for="rf-chat-display">Nome de exibição</label>
-          <input id="rf-chat-display" type="text" maxlength="40" placeholder="Como você aparece no chat">
         </div>
         <div class="rf-chat-auth-actions">
           <button type="button" id="rf-chat-login" class="btn primary">Entrar</button>
@@ -4117,7 +4113,7 @@
     let display = '';
     try { display = localStorage.getItem(DISPLAY_KEY) || ''; } catch (e) {}
     if (!display) display = (email.split('@')[0] || 'Colega').slice(0, 40);
-    userLabel.textContent = display + (email ? ' · ' + email : '');
+    userLabel.textContent = display || (email ? email.split('@')[0] : '—');
     unreadMap = readUnreadStore();
     showView('chat');
     updateHeaderForMode();
@@ -4146,53 +4142,65 @@
     showView('auth');
   }
 
-  function validateEmail(email) {
-    const e = String(email || '').trim().toLowerCase();
-    if (!e || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return 'Informe um e-mail válido.';
-    const domain = RF_CHAT_CONFIG.allowedEmailDomain;
-    if (domain && !e.endsWith('@' + domain.toLowerCase())) {
-      return 'Use um e-mail @' + domain;
-    }
+  /** Converte nome de usuário em e-mail sintético (exigência do Supabase Auth). */
+  function usernameToEmail(name) {
+    const raw = String(name || '').trim();
+    if (!raw) return null;
+    const slug = raw
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '')
+      .slice(0, 32);
+    if (!slug || slug.length < 2) return null;
+    return slug + '@rf-chat.local';
+  }
+
+  function validateUsername(name) {
+    const n = String(name || '').trim();
+    if (!n || n.length < 2) return 'Informe um nome de usuário (mín. 2 caracteres).';
+    if (n.length > 40) return 'Nome muito longo (máx. 40).';
+    if (!usernameToEmail(n)) return 'Use letras ou números no nome (ex.: rodrigo, ana2).';
     return null;
   }
 
   async function handleLogin(isSignup) {
-    const email = $('rf-chat-email').value.trim();
     const password = $('rf-chat-password').value;
     const display = $('rf-chat-display').value.trim().slice(0, 40);
-    const err = validateEmail(email);
+    const err = validateUsername(display);
     if (err) { setAuthMessage(err, 'error'); return; }
     if (!password || password.length < 6) {
       setAuthMessage('Senha com pelo menos 6 caracteres.', 'error');
       return;
     }
-    if (isSignup && !display) {
-      setAuthMessage('Informe um nome de exibição.', 'error');
-      return;
-    }
+    const email = usernameToEmail(display);
     setAuthMessage(isSignup ? 'Criando conta…' : 'Entrando…', '');
     try {
+      try { localStorage.setItem(DISPLAY_KEY, display); } catch (e) {}
       if (isSignup) {
         const { data, error } = await client.auth.signUp({ email, password });
         if (error) throw error;
-        try { localStorage.setItem(DISPLAY_KEY, display); } catch (e) {}
         if (data.session) {
           await enterChat(data.session);
           setAuthMessage('');
         } else {
-          setAuthMessage('Conta criada. Se o projeto exigir confirmação, verifique o e-mail e depois entre.', 'ok');
+          setAuthMessage('Conta criada. Se ainda pedir confirmação, desative "Confirm email" no Supabase (Sign In / Providers → Email).', 'ok');
         }
       } else {
         const { data, error } = await client.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        if (display) {
-          try { localStorage.setItem(DISPLAY_KEY, display); } catch (e) {}
-        }
         await enterChat(data.session);
         setAuthMessage('');
       }
     } catch (e) {
-      setAuthMessage((e && e.message) ? e.message : 'Falha na autenticação.', 'error');
+      let msg = (e && e.message) ? e.message : 'Falha na autenticação.';
+      if (/invalid login credentials/i.test(msg)) {
+        msg = 'Nome ou senha incorretos. Se for a primeira vez, use "Criar conta".';
+      }
+      if (/already registered|already been registered/i.test(msg)) {
+        msg = 'Esse nome já está em uso. Escolha outro ou clique em Entrar.';
+      }
+      setAuthMessage(msg, 'error');
     }
   }
 
