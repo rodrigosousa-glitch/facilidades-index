@@ -1239,12 +1239,11 @@
 
     <div class="sync-zone">
       <div>
-        <p class="step">1. Arraste <strong>Assistente (auto)</strong> para a Barra de Favoritos <strong>apenas uma vez</strong>. Atualizações futuras do widget sobem só com o arquivo <code>assistente.js</code> no site.</p>
-        <p>2. No Blip Desk, abra um atendimento e clique no favorito. Se o auto falhar, use o <strong>Assistente (clássico)</strong> (código embutido).</p>
+        <p class="step">1. Arraste o <strong>Assistente</strong> para a Barra de Favoritos. O código fica embutido no favorito.</p>
+        <p>2. No Blip Desk, abra um atendimento e clique no favorito. Após alterar o assistente no painel, arraste o botão de novo para atualizar.</p>
       </div>
       <div class="sync-zone-actions">
-        <a id="bookmarklet" class="btn bookmarklet" href="#" title="Bookmarklet leve: carrega assistente.js do seu site"><i data-lucide="orbit"></i> Assistente (auto)</a>
-        <a id="bookmarklet-classic" class="btn sync-btn" href="#" title="Bookmarklet clássico: código completo embutido no favorito"><i data-lucide="bookmark"></i> Assistente (clássico)</a>
+        <a id="bookmarklet" class="btn bookmarklet" href="#" title="Bookmarklet: código completo embutido no favorito"><i data-lucide="bookmark"></i> Assistente</a>
         <button id="sync" class="btn sync-btn"><i data-lucide="clipboard-copy"></i> Copiar macros para o Blip</button>
       </div>
       <p id="sync-status" class="sync-status" role="status" aria-live="polite" data-state="pending">Altere ou cadastre suas macros e clique em copiar para atualizar o Blip.</p>
@@ -2240,6 +2239,7 @@
       var w=D.getElementById('rf-assistant-widget'); if(w) w.remove();
       var d=D.getElementById('rf-assistant-dropdown'); if(d) d.remove();
       var n=D.getElementById('rf-assistant-note'); if(n) n.remove();
+      var e=D.getElementById('rf-et-anim'); if(e) e.remove();
       if(W.__RF_ASSISTANT_CLEANUP__===stop) delete W.__RF_ASSISTANT_CLEANUP__;
     }
     W.__RF_ASSISTANT_CLEANUP__=stop;
@@ -2261,6 +2261,28 @@
       note.style.background=color||th.noteBg;
       note.style.color=th.noteColor;
       setTimeout(function(){ if(note) note.remove(); }, 3000);
+    }
+
+    function showEtAnim(){
+      var old=D.getElementById('rf-et-anim'); if(old) old.remove();
+      var th=T();
+      var el=D.createElement('div');
+      el.id='rf-et-anim';
+      el.textContent='👽';
+      el.setAttribute('aria-hidden','true');
+      el.style.cssText='position:fixed;left:50%;bottom:96px;z-index:2147483647;font-size:48px;line-height:1;pointer-events:none;transform:translate(-50%,0) scale(0.55);opacity:0;transition:transform 0.85s cubic-bezier(0.22,1,0.36,1),opacity 0.75s ease;filter:drop-shadow(0 0 18px '+th.accent+');';
+      D.body.appendChild(el);
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          el.style.transform='translate(-50%,-150px) scale(1.28)';
+          el.style.opacity='1';
+        });
+      });
+      setTimeout(function(){
+        el.style.opacity='0';
+        el.style.transform='translate(-50%,-210px) scale(0.95)';
+      }, 520);
+      setTimeout(function(){ if(el.parentNode) el.remove(); }, 1100);
     }
 
     function applySync(text){
@@ -2369,7 +2391,9 @@
     function uses(){ return read(UKEY,{}); }
     function useMacro(m,node,removeShortcut){
       var u=uses(); u[m.id]=(Number(u[m.id])||0)+1; write(UKEY,u);
-      insert(m.content,node,removeShortcut); widget();
+      insert(m.content,node,removeShortcut);
+      showEtAnim();
+      widget();
     }
 
     function closeDrop(){ if(drop) drop.remove(); drop=null; options=[]; choice=0; }
@@ -2501,34 +2525,11 @@
     }
   }
 
-  // Classic fallback: full code embedded in the bookmark (drag again after changes)
+  // Código completo embutido no favorito (arraste de novo após alterações no assistente)
   var classicHref = 'javascript:' + encodeURIComponent('(' + bookmarkletCode.toString() + ')();void 0;');
-  var classicEl = $('bookmarklet-classic');
-  if (classicEl) classicEl.href = classicHref;
+  var bookmarkletEl = $('bookmarklet');
+  if (bookmarkletEl) bookmarkletEl.href = classicHref;
 
-  // Light loader: fetches assistente.js from the same origin/path as this panel
-  // Bump ASSISTENTE_VERSION after publishing a new assistente.js to bust browser cache
-  var ASSISTENTE_VERSION = '1';
-  function assistenteScriptUrl() {
-    try {
-      if (location.protocol === 'http:' || location.protocol === 'https:') {
-        return new URL('assistente.js?v=' + ASSISTENTE_VERSION, location.href).href;
-      }
-    } catch (e) {}
-    return '';
-  }
-  var scriptUrl = assistenteScriptUrl();
-  var lightEl = $('bookmarklet');
-  if (lightEl) {
-    if (scriptUrl) {
-      var loader = "(function(){var u=" + JSON.stringify(scriptUrl) + ";var s=document.createElement('script');s.src=u;s.async=true;s.onerror=function(){alert('Falha ao carregar o Assistente de: '+u+'\\n\\nConfira se assistente.js está no GitHub Pages ou use Assistente (clássico).');};(document.documentElement||document.body).appendChild(s);})();void 0;";
-      lightEl.href = 'javascript:' + encodeURIComponent(loader);
-    } else {
-      // file:// or unknown origin → point users to classic
-      lightEl.href = classicHref;
-      lightEl.title = 'Origem local detectada: usando código clássico embutido. No GitHub Pages o botão carrega assistente.js.';
-    }
-  }
   render();
 })();
 </script>
