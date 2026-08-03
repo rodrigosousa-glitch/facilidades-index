@@ -1458,6 +1458,30 @@
       font-weight: 650;
       color: var(--accent);
     }
+    .rf-chat-msg-author[data-clickable="true"] {
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-color: transparent;
+      transition: text-decoration-color 0.12s ease, color 0.12s ease;
+    }
+    .rf-chat-msg-author[data-clickable="true"]:hover {
+      text-decoration-color: var(--accent);
+      color: #a8f75a;
+    }
+    [data-theme="classic"] .rf-chat-msg-author[data-clickable="true"]:hover {
+      color: #67e8f9;
+    }
+    .rf-chat-mode-pill {
+      display: none;
+      margin-top: 2px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--amber);
+      letter-spacing: 0.02em;
+    }
+    .rf-chat-mode-pill[data-show="true"] { display: block; }
+    .rf-chat-back[hidden] { display: none !important; }
+
     .rf-chat-msg-time {
       font-size: 10px;
       color: var(--muted-dim);
@@ -1955,11 +1979,15 @@
     <div class="rf-chat-head-title">
       <span id="rf-chat-dot" class="rf-chat-status-dot" data-online="false" aria-hidden="true"></span>
       <div>
-        <strong>Chat da equipe</strong>
+        <strong id="rf-chat-title">Chat da equipe</strong>
         <span id="rf-chat-subtitle">Rodrigo Facilidades</span>
+        <span id="rf-chat-mode-pill" class="rf-chat-mode-pill" data-show="false">Privado · só vocês dois veem</span>
       </div>
     </div>
     <div class="rf-chat-head-actions">
+      <button type="button" id="rf-chat-back" class="rf-chat-icon-btn rf-chat-back" title="Voltar ao chat da equipe" aria-label="Voltar ao chat da equipe" hidden>
+        <i data-lucide="arrow-left"></i>
+      </button>
       <button type="button" id="rf-chat-logout" class="rf-chat-icon-btn" title="Sair" aria-label="Sair" hidden>
         <i data-lucide="log-out"></i>
       </button>
@@ -3605,6 +3633,28 @@
 
   alter publication supabase_realtime add table public.team_messages;
 
+  -- === CHAT PRIVADO (rode se a tabela já existir) ===
+  -- alter table public.team_messages
+  --   add column if not exists recipient_id uuid references auth.users(id) on delete cascade;
+  --
+  -- drop policy if exists "team_messages_select_authenticated" on public.team_messages;
+  -- drop policy if exists "team_messages_insert_own" on public.team_messages;
+  --
+  -- create policy "team_messages_select_v2"
+  --   on public.team_messages for select to authenticated
+  --   using (
+  --     recipient_id is null
+  --     or auth.uid() = user_id
+  --     or auth.uid() = recipient_id
+  --   );
+  --
+  -- create policy "team_messages_insert_v2"
+  --   on public.team_messages for insert to authenticated
+  --   with check (
+  --     auth.uid() = user_id
+  --     and (recipient_id is null or recipient_id <> auth.uid())
+  --   );
+
   -- OPCIONAL — allowlist de e-mails (troque o domínio):
   -- create or replace function public.is_allowed_email()
   -- returns boolean language sql stable as $$
@@ -3633,6 +3683,9 @@
   const userbar = $('rf-chat-userbar');
   const userLabel = $('rf-chat-user-label');
   const logoutBtn = $('rf-chat-logout');
+  const backBtn = $('rf-chat-back');
+  const titleEl = $('rf-chat-title');
+  const modePill = $('rf-chat-mode-pill');
   const authMsg = $('rf-chat-auth-msg');
   const DISPLAY_KEY = 'rf_chat_display_name_v1';
 
@@ -3642,6 +3695,8 @@
   let knownIds = new Set();
   let unread = 0;
   let panelOpen = false;
+  /** @type {{ id: string, name: string } | null} */
+  let dmPeer = null; // null = chat público da equipe
 
   function configured() {
     return !!(RF_CHAT_CONFIG.enabled && RF_CHAT_CONFIG.supabaseUrl && RF_CHAT_CONFIG.supabaseAnonKey);
@@ -3713,24 +3768,100 @@
     });
   }
 
+  function isPrivateRow(row) {
+    return !!(row && row.recipient_id);
+  }
+
+  function rowBelongsToCurrentView(row) {
+    if (!row) return false;
+    const uid = session && session.user && session.user.id;
+    if (!dmPeer) {
+      return !row.recipient_id;
+    }
+    // DM: only messages between me and peer
+    const a = row.user_id;
+    const b = row.recipient_id;
+    return (
+      (a === uid && b === dmPeer.id) ||
+      (a === dmPeer.id && b === uid)
+    );
+  }
+
+  function rowIsUnreadForMe(row) {
+    const uid = session && session.user && session.user.id;
+    if (!row || !uid || row.user_id === uid) return false;
+    if (!row.recipient_id) return true; // public from others
+    return row.recipient_id === uid; // private to me
+  }
+
+  function updateHeaderForMode() {
+    if (dmPeer) {
+      if (titleEl) titleEl.textContent = 'Privado · ' + dmPeer.name;
+      subtitle.textContent = 'Só vocês dois';
+      if (modePill) modePill.dataset.show = 'true';
+      if (backBtn) backBtn.hidden = false;
+      if (input) input.placeholder = 'Mensagem privada para ' + dmPeer.name + '…';
+    } else {
+      if (titleEl) titleEl.textContent = 'Chat da equipe';
+      subtitle.textContent = session ? 'Online' : 'Rodrigo Facilidades';
+      if (modePill) modePill.dataset.show = 'false';
+      if (backBtn) backBtn.hidden = true;
+      if (input) input.placeholder = 'Mensagem para a equipe…';
+    }
+    if (window.lucide) lucide.createIcons();
+  }
+
+  async function openPrivateChat(peerId, peerName) {
+    if (!session || !peerId) return;
+    if (session.user.id === peerId) return;
+    dmPeer = { id: peerId, name: peerName || 'Colega' };
+    updateHeaderForMode();
+    await loadHistory();
+    unread = 0;
+    updateUnread();
+  }
+
+  function backToTeamChat() {
+    dmPeer = null;
+    updateHeaderForMode();
+    loadHistory();
+  }
+
   function appendMessage(row, mine) {
     if (!row || !row.id || knownIds.has(row.id)) return;
+    if (!rowBelongsToCurrentView(row)) {
+      // still track for unread if relevant and panel closed
+      if (!panelOpen && rowIsUnreadForMe(row)) {
+        // only bump unread for messages not currently visible
+        if (!knownIds.has(row.id)) {
+          // don't add to knownIds here if not showing - use separate? 
+          // Actually if we don't add to knownIds, realtime might re-fire... realtime fires once
+          unread += 1;
+          updateUnread();
+        }
+      }
+      return;
+    }
     knownIds.add(row.id);
     const empty = msgsEl.querySelector('.rf-chat-empty');
     if (empty) empty.remove();
 
+    const canDm = !mine && row.user_id && session && row.user_id !== session.user.id;
     const el = document.createElement('div');
     el.className = 'rf-chat-msg' + (mine ? ' mine' : '');
     el.dataset.id = row.id;
     el.innerHTML =
       '<div class="rf-chat-msg-meta">' +
-        '<span class="rf-chat-msg-author">' + esc(row.display_name || 'Colega') + '</span>' +
+        '<span class="rf-chat-msg-author"' +
+          (canDm ? ' data-clickable="true" data-user-id="' + esc(row.user_id) + '" data-user-name="' + esc(row.display_name || 'Colega') + '" title="Abrir chat privado"' : '') +
+        '>' + esc(row.display_name || 'Colega') + '</span>' +
+        (isPrivateRow(row) ? '<span class="rf-chat-msg-time">privado</span>' : '') +
         '<span class="rf-chat-msg-time">' + esc(formatTime(row.created_at)) + '</span>' +
       '</div>' +
       '<div class="rf-chat-msg-text">' + esc(row.body) + '</div>';
     msgsEl.appendChild(el);
 
-    if (!panelOpen && !mine) {
+    if (!panelOpen && !mine && rowIsUnreadForMe(row)) {
       unread += 1;
       updateUnread();
     } else {
@@ -3741,22 +3872,45 @@
   async function loadHistory() {
     msgsEl.innerHTML = '';
     knownIds.clear();
-    const { data, error } = await client
+    if (!client || !session) return;
+
+    let query = client
       .from('team_messages')
-      .select('id, user_id, display_name, body, created_at')
+      .select('id, user_id, recipient_id, display_name, body, created_at')
       .order('created_at', { ascending: true })
-      .limit(200);
+      .limit(300);
+
+    if (dmPeer) {
+      const uid = session.user.id;
+      const pid = dmPeer.id;
+      // (me -> peer) OR (peer -> me)
+      query = query.or(
+        'and(user_id.eq.' + uid + ',recipient_id.eq.' + pid + '),' +
+        'and(user_id.eq.' + pid + ',recipient_id.eq.' + uid + ')'
+      );
+    } else {
+      query = query.is('recipient_id', null);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
-      msgsEl.innerHTML = '<div class="rf-chat-empty">Não foi possível carregar as mensagens.<br><small>' + esc(error.message) + '</small></div>';
+      // Fallback if column recipient_id does not exist yet
+      if (String(error.message || '').toLowerCase().includes('recipient_id')) {
+        msgsEl.innerHTML = '<div class="rf-chat-empty">Para ativar chat privado, rode no SQL Editor do Supabase o script de <strong>recipient_id</strong> (está no comentário do código).<br><small>' + esc(error.message) + '</small></div>';
+      } else {
+        msgsEl.innerHTML = '<div class="rf-chat-empty">Não foi possível carregar as mensagens.<br><small>' + esc(error.message) + '</small></div>';
+      }
       setOnline(false);
       return;
     }
     if (!data || !data.length) {
-      msgsEl.innerHTML = '<div class="rf-chat-empty">Nenhuma mensagem ainda.<br>Seja o primeiro a escrever para a equipe.</div>';
+      msgsEl.innerHTML = dmPeer
+        ? '<div class="rf-chat-empty">Nenhuma mensagem privada ainda com <strong>' + esc(dmPeer.name) + '</strong>.<br>Envie a primeira.</div>'
+        : '<div class="rf-chat-empty">Nenhuma mensagem ainda.<br>Seja o primeiro a escrever para a equipe.<br><small>Clique no nome de alguém para abrir chat privado.</small></div>';
       return;
     }
-    const uid = session && session.user && session.user.id;
+    const uid = session.user.id;
     data.forEach((row) => appendMessage(row, row.user_id === uid));
     scrollBottom();
   }
@@ -3789,16 +3943,20 @@
     try { display = localStorage.getItem(DISPLAY_KEY) || ''; } catch (e) {}
     if (!display) display = (email.split('@')[0] || 'Colega').slice(0, 40);
     userLabel.textContent = display + (email ? ' · ' + email : '');
-    subtitle.textContent = 'Online';
     showView('chat');
+    updateHeaderForMode();
     await loadHistory();
     subscribeRealtime();
   }
 
   function leaveChatUi() {
     session = null;
+    dmPeer = null;
     setOnline(false);
+    if (titleEl) titleEl.textContent = 'Chat da equipe';
     subtitle.textContent = 'Rodrigo Facilidades';
+    if (modePill) modePill.dataset.show = 'false';
+    if (backBtn) backBtn.hidden = true;
     if (channel && client) {
       try { client.removeChannel(channel); } catch (e) {}
       channel = null;
@@ -3869,11 +4027,13 @@
       display = ((session.user && session.user.email) || 'Colega').split('@')[0].slice(0, 40);
     }
     sendBtn.disabled = true;
-    const { error } = await client.from('team_messages').insert({
+    const payload = {
       user_id: session.user.id,
       display_name: display,
       body: body.slice(0, 2000)
-    });
+    };
+    if (dmPeer) payload.recipient_id = dmPeer.id;
+    const { error } = await client.from('team_messages').insert(payload);
     sendBtn.disabled = false;
     if (error) {
       alert('Não foi possível enviar: ' + error.message);
@@ -3886,11 +4046,19 @@
   function initUi() {
     fab.addEventListener('click', openPanel);
     $('rf-chat-close').addEventListener('click', closePanel);
+    if (backBtn) backBtn.addEventListener('click', backToTeamChat);
     $('rf-chat-login').addEventListener('click', () => handleLogin(false));
     $('rf-chat-signup').addEventListener('click', () => handleLogin(true));
     logoutBtn.addEventListener('click', async () => {
       if (client) await client.auth.signOut();
       leaveChatUi();
+    });
+    msgsEl.addEventListener('click', (e) => {
+      const author = e.target.closest('.rf-chat-msg-author[data-clickable="true"]');
+      if (!author) return;
+      const id = author.getAttribute('data-user-id');
+      const name = author.getAttribute('data-user-name') || 'Colega';
+      if (id) openPrivateChat(id, name);
     });
     compose.addEventListener('submit', sendMessage);
     input.addEventListener('keydown', (e) => {
