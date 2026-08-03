@@ -1482,6 +1482,67 @@
     .rf-chat-mode-pill[data-show="true"] { display: block; }
     .rf-chat-back[hidden] { display: none !important; }
 
+    .rf-chat-tabs {
+      display: none;
+      gap: 6px;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      overflow-x: auto;
+      flex-shrink: 0;
+      scrollbar-width: thin;
+    }
+    .rf-chat-tabs[data-show="true"] { display: flex; }
+    .rf-chat-tabs::-webkit-scrollbar { height: 4px; }
+    .rf-chat-tabs::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+    }
+    .rf-chat-tab {
+      position: relative;
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 140px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      color: var(--muted);
+      font: 600 11.5px var(--font);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.12s ease;
+    }
+    .rf-chat-tab:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+      background: var(--card-raised);
+    }
+    .rf-chat-tab[data-active="true"] {
+      color: var(--accent);
+      border-color: var(--accent-border);
+      background: var(--accent-dim);
+      box-shadow: inset 0 0 0 1px var(--accent-border);
+    }
+    .rf-chat-tab-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .rf-chat-tab-badge {
+      display: none;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      border-radius: 999px;
+      background: var(--red);
+      color: #fff;
+      font: 700 10px/16px var(--font);
+      text-align: center;
+    }
+    .rf-chat-tab-badge[data-show="true"] { display: inline-block; }
+
     .rf-chat-msg-time {
       font-size: 10px;
       color: var(--muted-dim);
@@ -1969,17 +2030,17 @@
 </main>
 
 <!-- CHAT INTERNO DA EQUIPE -->
-<button type="button" id="rf-chat-fab" class="rf-chat-fab" title="WhatsApp 2" aria-label="Abrir chat da equipe" data-open="false">
+<button type="button" id="rf-chat-fab" class="rf-chat-fab" title="Chat da equipe" aria-label="Abrir chat da equipe" data-open="false">
   <i data-lucide="message-circle"></i>
   <span id="rf-chat-badge" class="rf-chat-badge" data-show="false">0</span>
 </button>
 
-<aside id="rf-chat-panel" class="rf-chat-panel" data-open="false" aria-label="WhatsApp 2">
+<aside id="rf-chat-panel" class="rf-chat-panel" data-open="false" aria-label="Chat da equipe">
   <div class="rf-chat-head">
     <div class="rf-chat-head-title">
       <span id="rf-chat-dot" class="rf-chat-status-dot" data-online="false" aria-hidden="true"></span>
       <div>
-        <strong id="rf-chat-title">WhatsApp 2</strong>
+        <strong id="rf-chat-title">Chat da equipe</strong>
         <span id="rf-chat-subtitle">Rodrigo Facilidades</span>
         <span id="rf-chat-mode-pill" class="rf-chat-mode-pill" data-show="false">Privado · só vocês dois veem</span>
       </div>
@@ -2000,6 +2061,8 @@
   <div id="rf-chat-userbar" class="rf-chat-userbar" data-show="false">
     <span>Conectado como <strong id="rf-chat-user-label">—</strong></span>
   </div>
+
+  <div id="rf-chat-tabs" class="rf-chat-tabs" data-show="false" role="tablist" aria-label="Conversas"></div>
 
   <div class="rf-chat-body">
     <div id="rf-chat-setup" class="rf-chat-setup">
@@ -3686,8 +3749,10 @@
   const backBtn = $('rf-chat-back');
   const titleEl = $('rf-chat-title');
   const modePill = $('rf-chat-mode-pill');
+  const tabsEl = $('rf-chat-tabs');
   const authMsg = $('rf-chat-auth-msg');
   const DISPLAY_KEY = 'rf_chat_display_name_v1';
+  const UNREAD_KEY = 'rf_chat_dm_unread_v1';
 
   let client = null;
   let session = null;
@@ -3697,6 +3762,10 @@
   let panelOpen = false;
   /** @type {{ id: string, name: string } | null} */
   let dmPeer = null; // null = chat público da equipe
+  /** @type {Map<string, { id: string, name: string }>} */
+  let dmContacts = new Map(); // peerId -> {id, name}
+  /** unread private counts by peerId; public team uses key "__team__" */
+  let unreadMap = {};
 
   function configured() {
     return !!(RF_CHAT_CONFIG.enabled && RF_CHAT_CONFIG.supabaseUrl && RF_CHAT_CONFIG.supabaseAnonKey);
@@ -3725,14 +3794,83 @@
     dot.dataset.online = on ? 'true' : 'false';
   }
 
+  function readUnreadStore() {
+    try {
+      const v = JSON.parse(localStorage.getItem(UNREAD_KEY) || '{}');
+      return (v && typeof v === 'object') ? v : {};
+    } catch (e) { return {}; }
+  }
+  function writeUnreadStore() {
+    try { localStorage.setItem(UNREAD_KEY, JSON.stringify(unreadMap)); } catch (e) {}
+  }
+  function totalUnread() {
+    let n = 0;
+    Object.keys(unreadMap).forEach((k) => { n += Number(unreadMap[k]) || 0; });
+    return n;
+  }
+  function bumpUnread(key, by) {
+    if (!key) return;
+    unreadMap[key] = (Number(unreadMap[key]) || 0) + (by || 1);
+    writeUnreadStore();
+    updateUnread();
+    renderDmTabs();
+  }
+  function clearUnread(key) {
+    if (!key) return;
+    if (unreadMap[key]) {
+      delete unreadMap[key];
+      writeUnreadStore();
+    }
+    updateUnread();
+    renderDmTabs();
+  }
   function updateUnread() {
-    if (unread > 0 && !panelOpen) {
-      badge.textContent = unread > 99 ? '99+' : String(unread);
+    const n = totalUnread();
+    unread = n;
+    if (n > 0 && !panelOpen) {
+      badge.textContent = n > 99 ? '99+' : String(n);
       badge.dataset.show = 'true';
+    } else if (n > 0 && panelOpen) {
+      // panel open: still show on FAB when closed only
+      badge.dataset.show = 'false';
     } else {
       badge.dataset.show = 'false';
-      unread = 0;
     }
+  }
+
+  function registerContact(id, name) {
+    if (!id) return;
+    const prev = dmContacts.get(id);
+    const label = (name && String(name).trim()) || (prev && prev.name) || 'Colega';
+    dmContacts.set(id, { id: id, name: label.slice(0, 40) });
+  }
+
+  function renderDmTabs() {
+    if (!tabsEl) return;
+    const show = !!(session && (dmContacts.size > 0 || true));
+    // always show tabs when logged in (Equipe + DMs)
+    if (!session || msgsWrap.hidden) {
+      tabsEl.dataset.show = 'false';
+      tabsEl.innerHTML = '';
+      return;
+    }
+    tabsEl.dataset.show = 'true';
+    const teamUnread = Number(unreadMap['__team__']) || 0;
+    let html = '';
+    html += '<button type="button" class="rf-chat-tab" data-tab="team" data-active="' + (!dmPeer ? 'true' : 'false') + '" role="tab">' +
+      '<span class="rf-chat-tab-label">Equipe</span>' +
+      '<span class="rf-chat-tab-badge" data-show="' + (teamUnread > 0 && !!dmPeer ? 'true' : 'false') + '">' + (teamUnread > 99 ? '99+' : teamUnread) + '</span>' +
+      '</button>';
+    const list = Array.from(dmContacts.values()).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+    list.forEach((c) => {
+      const u = Number(unreadMap[c.id]) || 0;
+      const active = dmPeer && dmPeer.id === c.id;
+      html += '<button type="button" class="rf-chat-tab" data-tab="dm" data-peer-id="' + esc(c.id) + '" data-peer-name="' + esc(c.name) + '" data-active="' + (active ? 'true' : 'false') + '" role="tab">' +
+        '<span class="rf-chat-tab-label">' + esc(c.name) + '</span>' +
+        '<span class="rf-chat-tab-badge" data-show="' + (u > 0 && !active ? 'true' : 'false') + '">' + (u > 99 ? '99+' : u) + '</span>' +
+        '</button>';
+    });
+    tabsEl.innerHTML = html;
   }
 
   function showView(name) {
@@ -3744,14 +3882,21 @@
     logoutBtn.hidden = name !== 'chat';
     input.disabled = name !== 'chat';
     sendBtn.disabled = name !== 'chat';
+    if (tabsEl && name !== 'chat') {
+      tabsEl.dataset.show = 'false';
+      tabsEl.innerHTML = '';
+    }
   }
 
   function openPanel() {
     panelOpen = true;
     panel.dataset.open = 'true';
     fab.dataset.open = 'true';
-    unread = 0;
+    // clear unread only for the active conversation
+    if (dmPeer) clearUnread(dmPeer.id);
+    else clearUnread('__team__');
     updateUnread();
+    renderDmTabs();
     if (window.lucide) lucide.createIcons();
     if (!msgsWrap.hidden) scrollBottom();
   }
@@ -3802,7 +3947,7 @@
       if (backBtn) backBtn.hidden = false;
       if (input) input.placeholder = 'Mensagem privada para ' + dmPeer.name + '…';
     } else {
-      if (titleEl) titleEl.textContent = 'WhatsApp 2';
+      if (titleEl) titleEl.textContent = 'Chat da equipe';
       subtitle.textContent = session ? 'Online' : 'Rodrigo Facilidades';
       if (modePill) modePill.dataset.show = 'false';
       if (backBtn) backBtn.hidden = true;
@@ -3814,32 +3959,50 @@
   async function openPrivateChat(peerId, peerName) {
     if (!session || !peerId) return;
     if (session.user.id === peerId) return;
-    dmPeer = { id: peerId, name: peerName || 'Colega' };
+    registerContact(peerId, peerName || 'Colega');
+    dmPeer = { id: peerId, name: (peerName || 'Colega').slice(0, 40) };
+    clearUnread(peerId);
     updateHeaderForMode();
+    renderDmTabs();
     await loadHistory();
-    unread = 0;
-    updateUnread();
   }
 
   function backToTeamChat() {
     dmPeer = null;
+    clearUnread('__team__');
     updateHeaderForMode();
+    renderDmTabs();
     loadHistory();
+  }
+
+  function unreadKeyForRow(row) {
+    const uid = session && session.user && session.user.id;
+    if (!row || !uid || row.user_id === uid) return null;
+    if (!row.recipient_id) return '__team__';
+    if (row.recipient_id === uid) return row.user_id; // private to me from peer
+    return null;
   }
 
   function appendMessage(row, mine) {
     if (!row || !row.id || knownIds.has(row.id)) return;
+
+    // Always register DM contacts from private traffic
+    const uid = session && session.user && session.user.id;
+    if (row.recipient_id && uid) {
+      if (row.user_id === uid) registerContact(row.recipient_id, null);
+      else if (row.recipient_id === uid) registerContact(row.user_id, row.display_name);
+    }
+
     if (!rowBelongsToCurrentView(row)) {
-      // still track for unread if relevant and panel closed
-      if (!panelOpen && rowIsUnreadForMe(row)) {
-        // only bump unread for messages not currently visible
-        if (!knownIds.has(row.id)) {
-          // don't add to knownIds here if not showing - use separate? 
-          // Actually if we don't add to knownIds, realtime might re-fire... realtime fires once
-          unread += 1;
-          updateUnread();
-        }
+      if (!mine && rowIsUnreadForMe(row)) {
+        const key = unreadKeyForRow(row);
+        // if viewing another chat / panel closed / different tab
+        const viewingThis =
+          (key === '__team__' && !dmPeer && panelOpen) ||
+          (dmPeer && key === dmPeer.id && panelOpen);
+        if (!viewingThis && key) bumpUnread(key, 1);
       }
+      renderDmTabs();
       return;
     }
     knownIds.add(row.id);
@@ -3861,12 +4024,17 @@
       '<div class="rf-chat-msg-text">' + esc(row.body) + '</div>';
     msgsEl.appendChild(el);
 
-    if (!panelOpen && !mine && rowIsUnreadForMe(row)) {
-      unread += 1;
-      updateUnread();
+    if (!mine && rowIsUnreadForMe(row)) {
+      const key = unreadKeyForRow(row);
+      const viewingThis =
+        (key === '__team__' && !dmPeer && panelOpen) ||
+        (dmPeer && key === dmPeer.id && panelOpen);
+      if (!viewingThis && key) bumpUnread(key, 1);
+      else if (viewingThis) scrollBottom();
     } else {
       scrollBottom();
     }
+    renderDmTabs();
   }
 
   async function loadHistory() {
@@ -3910,7 +4078,15 @@
         : '<div class="rf-chat-empty">Nenhuma mensagem ainda.<br>Seja o primeiro a escrever para a equipe.<br><small>Clique no nome de alguém para abrir chat privado.</small></div>';
       return;
     }
+    // Discover DM contacts from full payload before filtering display
+    const all = Array.isArray(data) ? data : [];
+    all.forEach((r) => {
+      if (!r || !r.recipient_id) return;
+      if (r.user_id === uid) registerContact(r.recipient_id, null);
+      else if (r.recipient_id === uid) registerContact(r.user_id, r.display_name);
+    });
     rows.forEach((row) => appendMessage(row, row.user_id === uid));
+    renderDmTabs();
     scrollBottom();
   }
 
@@ -3942,20 +4118,25 @@
     try { display = localStorage.getItem(DISPLAY_KEY) || ''; } catch (e) {}
     if (!display) display = (email.split('@')[0] || 'Colega').slice(0, 40);
     userLabel.textContent = display + (email ? ' · ' + email : '');
+    unreadMap = readUnreadStore();
     showView('chat');
     updateHeaderForMode();
     await loadHistory();
+    renderDmTabs();
+    updateUnread();
     subscribeRealtime();
   }
 
   function leaveChatUi() {
     session = null;
     dmPeer = null;
+    dmContacts = new Map();
     setOnline(false);
-    if (titleEl) titleEl.textContent = 'WhatsApp 2';
+    if (titleEl) titleEl.textContent = 'Chat da equipe';
     subtitle.textContent = 'Rodrigo Facilidades';
     if (modePill) modePill.dataset.show = 'false';
     if (backBtn) backBtn.hidden = true;
+    if (tabsEl) { tabsEl.dataset.show = 'false'; tabsEl.innerHTML = ''; }
     if (channel && client) {
       try { client.removeChannel(channel); } catch (e) {}
       channel = null;
@@ -4049,6 +4230,16 @@
     fab.addEventListener('click', openPanel);
     $('rf-chat-close').addEventListener('click', closePanel);
     if (backBtn) backBtn.addEventListener('click', backToTeamChat);
+    if (tabsEl) {
+      tabsEl.addEventListener('click', (e) => {
+        const tab = e.target.closest('.rf-chat-tab');
+        if (!tab) return;
+        if (tab.dataset.tab === 'team') backToTeamChat();
+        else if (tab.dataset.tab === 'dm') {
+          openPrivateChat(tab.dataset.peerId, tab.dataset.peerName);
+        }
+      });
+    }
     $('rf-chat-login').addEventListener('click', () => handleLogin(false));
     $('rf-chat-signup').addEventListener('click', () => handleLogin(true));
     logoutBtn.addEventListener('click', async () => {
