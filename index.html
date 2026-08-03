@@ -2030,17 +2030,17 @@
 </main>
 
 <!-- CHAT INTERNO DA EQUIPE -->
-<button type="button" id="rf-chat-fab" class="rf-chat-fab" title="WhatsApp 2" aria-label="Abrir chat da equipe" data-open="false">
+<button type="button" id="rf-chat-fab" class="rf-chat-fab" title="Chat da equipe" aria-label="Abrir chat da equipe" data-open="false">
   <i data-lucide="message-circle"></i>
   <span id="rf-chat-badge" class="rf-chat-badge" data-show="false">0</span>
 </button>
 
-<aside id="rf-chat-panel" class="rf-chat-panel" data-open="false" aria-label="WhatsApp 2">
+<aside id="rf-chat-panel" class="rf-chat-panel" data-open="false" aria-label="Chat da equipe">
   <div class="rf-chat-head">
     <div class="rf-chat-head-title">
       <span id="rf-chat-dot" class="rf-chat-status-dot" data-online="false" aria-hidden="true"></span>
       <div>
-        <strong id="rf-chat-title">WhatsApp 2</strong>
+        <strong id="rf-chat-title">Chat da equipe</strong>
         <span id="rf-chat-subtitle">Rodrigo Facilidades</span>
         <span id="rf-chat-mode-pill" class="rf-chat-mode-pill" data-show="false">Privado · só vocês dois veem</span>
       </div>
@@ -3749,6 +3749,84 @@
   const authMsg = $('rf-chat-auth-msg');
   const DISPLAY_KEY = 'rf_chat_display_name_v1';
   const UNREAD_KEY = 'rf_chat_dm_unread_v1';
+  const NOTIF_PERM_KEY = 'rf_chat_notif_perm_asked_v1';
+
+  let audioCtx = null;
+  let audioUnlocked = false;
+
+  function unlockAudio() {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!audioCtx) audioCtx = new AC();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      audioUnlocked = true;
+    } catch (e) {}
+  }
+
+  /** Bipe curto (sem arquivo externo). */
+  function playMessageSound() {
+    try {
+      unlockAudio();
+      if (!audioCtx) return;
+      const t0 = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, t0);
+      osc.frequency.exponentialRampToValueAtTime(660, t0 + 0.09);
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.18, t0 + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.16);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.18);
+    } catch (e) {}
+  }
+
+  function ensureNotificationPermission() {
+    try {
+      if (!('Notification' in window)) return;
+      if (Notification.permission === 'granted' || Notification.permission === 'denied') return;
+      if (localStorage.getItem(NOTIF_PERM_KEY) === '1') return;
+      localStorage.setItem(NOTIF_PERM_KEY, '1');
+      Notification.requestPermission();
+    } catch (e) {}
+  }
+
+  function notifyBrowser(title, body) {
+    try {
+      if (!('Notification' in window)) return;
+      if (Notification.permission !== 'granted') return;
+      // Só quando a aba não está visível (segundo plano)
+      if (!document.hidden) return;
+      const n = new Notification(title || 'Chat da equipe', {
+        body: body || 'Nova mensagem',
+        silent: false,
+        tag: 'rf-chat-msg',
+        renotify: true
+      });
+      n.onclick = function () {
+        try { window.focus(); } catch (e) {}
+        n.close();
+      };
+      setTimeout(function () { try { n.close(); } catch (e) {} }, 6000);
+    } catch (e) {}
+  }
+
+  function alertIncomingMessage(row) {
+    if (!row) return;
+    const uid = session && session.user && session.user.id;
+    if (!uid || row.user_id === uid) return; // não alerta nas próprias
+
+    playMessageSound();
+
+    const who = row.display_name || 'Colega';
+    const preview = String(row.body || '').slice(0, 80);
+    const title = row.recipient_id ? ('Privado · ' + who) : ('Equipe · ' + who);
+    notifyBrowser(title, preview);
+  }
 
   let client = null;
   let session = null;
@@ -3888,6 +3966,8 @@
     panelOpen = true;
     panel.dataset.open = 'true';
     fab.dataset.open = 'true';
+    unlockAudio();
+    ensureNotificationPermission();
     // clear unread only for the active conversation
     if (dmPeer) clearUnread(dmPeer.id);
     else clearUnread('__team__');
@@ -3943,7 +4023,7 @@
       if (backBtn) backBtn.hidden = false;
       if (input) input.placeholder = 'Mensagem privada para ' + dmPeer.name + '…';
     } else {
-      if (titleEl) titleEl.textContent = 'WhatsApp 2';
+      if (titleEl) titleEl.textContent = 'Chat da equipe';
       subtitle.textContent = session ? 'Online' : 'Rodrigo Facilidades';
       if (modePill) modePill.dataset.show = 'false';
       if (backBtn) backBtn.hidden = true;
@@ -3979,11 +4059,14 @@
     return null;
   }
 
-  function appendMessage(row, mine) {
+  function appendMessage(row, mine, opts) {
     if (!row || !row.id || knownIds.has(row.id)) return;
+    opts = opts || {};
 
     // Always register DM contacts from private traffic
     const uid = session && session.user && session.user.id;
+    // Som + notificação só em mensagens AO VIVO (não no histórico)
+    if (!mine && opts.notify) alertIncomingMessage(row);
     if (row.recipient_id && uid) {
       if (row.user_id === uid) registerContact(row.recipient_id, null);
       else if (row.recipient_id === uid) registerContact(row.user_id, row.display_name);
@@ -4100,7 +4183,7 @@
       }, (payload) => {
         const row = payload.new;
         const uid = session && session.user && session.user.id;
-        appendMessage(row, row && row.user_id === uid);
+        appendMessage(row, row && row.user_id === uid, { notify: true });
       })
       .subscribe((status) => {
         setOnline(status === 'SUBSCRIBED');
@@ -4128,7 +4211,7 @@
     dmPeer = null;
     dmContacts = new Map();
     setOnline(false);
-    if (titleEl) titleEl.textContent = 'WhatsApp 2';
+    if (titleEl) titleEl.textContent = 'Chat da equipe';
     subtitle.textContent = 'Rodrigo Facilidades';
     if (modePill) modePill.dataset.show = 'false';
     if (backBtn) backBtn.hidden = true;
@@ -4235,6 +4318,11 @@
   }
 
   function initUi() {
+    // Desbloqueia áudio após qualquer interação (política do navegador)
+    const unlockOnce = () => { unlockAudio(); ensureNotificationPermission(); };
+    document.addEventListener('click', unlockOnce, { once: true, passive: true });
+    document.addEventListener('keydown', unlockOnce, { once: true, passive: true });
+
     fab.addEventListener('click', openPanel);
     $('rf-chat-close').addEventListener('click', closePanel);
     if (backBtn) backBtn.addEventListener('click', backToTeamChat);
