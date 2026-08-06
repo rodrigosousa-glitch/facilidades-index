@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script>
-    // Apply saved theme ASAP to avoid flash (visual only)
+    // Theme initializer
     (function () {
       try {
         var t = localStorage.getItem('rf_theme_v1');
@@ -30,7 +30,7 @@
       --card-raised: #151a20;
       --card-hover: #1a2028;
       --border: rgba(255, 255, 255, 0.06);
-      --border-strong: rgba(255, 255, 255, 0.10);
+      --border-strong: rgba(255, 255, 255, 0.12);
       --text: #f1f5f9;
       --text-secondary: #94a3b8;
       --muted: #64748b;
@@ -131,6 +131,12 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* Custom Dark Scrollbars Global */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
     body {
       min-height: 100vh;
@@ -589,14 +595,6 @@
       padding-right: 4px;
     }
 
-    .library-grid::-webkit-scrollbar { width: 5px; }
-    .library-grid::-webkit-scrollbar-track { background: transparent; }
-    .library-grid::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 3px;
-    }
-    .library-grid::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.14); }
-
     .macro-item {
       display: flex;
       flex-direction: column;
@@ -668,12 +666,6 @@
       max-height: calc(100vh - 220px);
       overflow-y: auto;
       padding-right: 6px;
-    }
-
-    .jira-container::-webkit-scrollbar { width: 5px; }
-    .jira-container::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 3px;
     }
 
     .jira-grid {
@@ -855,12 +847,6 @@
       max-height: 460px;
       overflow-y: auto;
       padding-right: 4px;
-    }
-
-    .bancos-lista::-webkit-scrollbar { width: 5px; }
-    .bancos-lista::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 3px;
     }
 
     .banco-row {
@@ -1120,12 +1106,6 @@
       padding-top: 4px;
     }
 
-    .ponto-records::-webkit-scrollbar { width: 4px; }
-    .ponto-records::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 2px;
-    }
-
     .ponto-records-title {
       position: sticky;
       top: 0;
@@ -1189,352 +1169,403 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ── RESPONSIVE ── */
-    @media (max-width: 1100px) {
-      .app-layout { grid-template-columns: 1fr; }
-      .workspace-grid { grid-template-columns: 1fr; }
-      .ponto-card { position: static; }
-      .main-nav { flex-wrap: wrap; }
-      .nav-tab { flex: 1 1 auto; min-width: 130px; }
+    /* ── SALDO DEVEDOR: REFINAMENTO DE DESIGN SAAS PREMIUM ── */
+    .sd-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    
+    .sd-paste-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      align-items: stretch;
     }
 
-    @media (max-width: 520px) {
-      .ponto-actions { grid-template-columns: 1fr; }
-      .ponto-metrics { grid-template-columns: 1fr; }
-      body { padding: 14px; }
+    .sd-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
     }
 
-    /* ── CHAT INTERNO ── */
+    .sd-box > label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      color: var(--muted);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      height: 24px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sd-tag {
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-strong);
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    .sd-box textarea {
+      flex: 1;
+      min-height: 140px;
+      resize: vertical;
+      font-size: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      line-height: 1.5;
+      white-space: pre;
+      overflow-x: auto;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      color: var(--text);
+      padding: 12px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .sd-box textarea:focus {
+      border-color: var(--focus-border);
+      box-shadow: var(--focus-ring);
+    }
+
+    .sd-detect {
+      font-size: 11.5px;
+      font-weight: 500;
+      min-height: 18px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+    }
+    .sd-detect svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .sd-detect.ok { color: var(--green); }
+    .sd-detect.warn { color: var(--amber); }
+    .sd-detect.err { color: var(--red); }
+
+    .sd-filter-bar {
+      margin-top: 18px;
+      padding: 14px 18px;
+      border-radius: 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .sd-kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .sd-kpi {
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .sd-kpi:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+    .sd-kpi span { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+    .sd-kpi strong { font-size: 18px; font-variant-numeric: tabular-nums; color: var(--text); font-weight: 700; }
+    .sd-kpi-main { background: var(--red-dim); border-color: rgba(248, 113, 113, 0.28); }
+    .sd-kpi-main strong { font-size: 24px; color: #fca5a5; }
+
+    .sd-table-wrap {
+      margin-top: 18px;
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+    }
+
+    .sd-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .sd-table th, .sd-table td { padding: 11px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+    .sd-table th {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--muted);
+      background: var(--bg-elevated);
+      position: sticky;
+      top: 0;
+      font-weight: 650;
+    }
+    .sd-table td.num, .sd-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .sd-table tbody tr { transition: background 0.12s ease; }
+    .sd-table tbody tr:hover { background: var(--card-raised); }
+    
+    .sd-ccb {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-weight: 600;
+      color: var(--accent);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sd-ccb:hover { text-decoration: underline; }
+
+    .sd-status {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      padding: 3px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+      display: inline-block;
+    }
+    .sd-status.aberto { background: var(--red-dim); color: #fca5a5; border: 1px solid rgba(248, 113, 113, 0.25); }
+    .sd-status.parcial { background: var(--amber-dim); color: #fcd34d; border: 1px solid rgba(251, 191, 36, 0.25); }
+    .sd-status.quitado { background: var(--green-dim); color: #6ee7b7; border: 1px solid rgba(52, 211, 153, 0.25); }
+
+    .sd-empty {
+      margin-top: 22px;
+      padding: 38px 20px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      background: var(--bg-elevated);
+    }
+    .sd-empty svg { width: 32px; height: 32px; stroke-width: 1.5; color: var(--muted-dim); }
+    .sd-empty p { font-size: 13.5px; margin: 10px 0 0; }
+
+
+    /* ═══ CHAT INTERNO DA EQUIPE ═══ */
     .rf-chat-fab {
       position: fixed;
-      right: 24px;
-      bottom: 24px;
-      z-index: 90;
-      width: 52px;
-      height: 52px;
-      border: none;
+      right: 22px;
+      bottom: 22px;
+      z-index: 9990;
+      width: 56px;
+      height: 56px;
       border-radius: 16px;
-      background: var(--btn-primary-bg);
-      color: var(--btn-primary-color);
-      box-shadow: var(--btn-primary-shadow), var(--shadow-lg);
-      cursor: pointer;
+      border: none;
+      background: var(--accent);
+      color: #0a0f08;
       display: grid;
       place-items: center;
-      transition: transform 0.15s ease, filter 0.15s ease;
+      cursor: pointer;
+      box-shadow: 0 8px 28px var(--accent-glow), 0 2px 8px rgba(0,0,0,0.35);
+      transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
     }
-    .rf-chat-fab:hover { transform: translateY(-2px) scale(1.04); filter: brightness(1.06); }
+    .rf-chat-fab:hover {
+      filter: brightness(1.08);
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 12px 32px var(--accent-glow), 0 4px 12px rgba(0,0,0,0.4);
+    }
     .rf-chat-fab:active { transform: scale(0.97); }
-    .rf-chat-fab svg { width: 22px; height: 22px; stroke-width: 2; }
-    .rf-chat-fab[data-open="true"] { display: none; }
+    .rf-chat-fab[data-open="true"] {
+      background: var(--card-raised);
+      color: var(--text-secondary);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-strong);
+    }
+    .rf-chat-fab svg { width: 24px; height: 24px; }
+
     .rf-chat-badge {
       position: absolute;
       top: -4px;
       right: -4px;
-      min-width: 18px;
-      height: 18px;
-      padding: 0 5px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
       border-radius: 999px;
       background: var(--red);
       color: #fff;
-      font: 700 10px/18px var(--font);
+      font: 700 11px/20px var(--font);
       text-align: center;
-      display: none;
+      box-shadow: 0 2px 8px rgba(248,113,113,0.45);
+      pointer-events: none;
     }
-    .rf-chat-badge[data-show="true"] { display: block; }
+    .rf-chat-badge[data-show="false"] { display: none; }
 
     .rf-chat-panel {
       position: fixed;
-      right: 24px;
-      bottom: 24px;
-      z-index: 95;
-      width: min(380px, calc(100vw - 24px));
-      height: min(560px, calc(100vh - 48px));
-      display: none;
+      right: 22px;
+      bottom: 90px;
+      z-index: 9991;
+      width: min(380px, calc(100vw - 28px));
+      height: min(620px, calc(100vh - 120px));
+      display: flex;
       flex-direction: column;
-      border: 1px solid var(--border);
-      border-radius: 16px;
       background: var(--card);
-      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-strong);
+      border-radius: 18px;
+      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.03);
       overflow: hidden;
-      backdrop-filter: blur(12px);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(12px) scale(0.97);
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
     }
-    .rf-chat-panel[data-open="true"] { display: flex; }
+    .rf-chat-panel[data-open="true"] {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
 
     .rf-chat-head {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 10px;
-      padding: 12px 14px;
+      padding: 14px 14px 12px;
       border-bottom: 1px solid var(--border);
       background: var(--bg-elevated);
+      flex-shrink: 0;
     }
     .rf-chat-head-title {
       display: flex;
-      align-items: center;
-      gap: 8px;
+      align-items: flex-start;
+      gap: 10px;
+      min-width: 0;
+    }
+    .rf-chat-head-title > div {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
       min-width: 0;
     }
     .rf-chat-head-title strong {
-      font-size: 13.5px;
+      font-size: 14px;
       font-weight: 650;
-      letter-spacing: -0.02em;
       color: var(--text);
+      letter-spacing: -0.02em;
+      line-height: 1.25;
     }
-    .rf-chat-head-title span {
-      font-size: 11px;
+    .rf-chat-head-title #rf-chat-subtitle {
+      font-size: 11.5px;
       color: var(--muted);
-      display: block;
+      font-weight: 500;
     }
+    .rf-chat-mode-pill {
+      display: none;
+      margin-top: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      width: fit-content;
+      letter-spacing: 0.01em;
+    }
+    .rf-chat-mode-pill[data-show="true"] { display: inline-block; }
+
     .rf-chat-status-dot {
-      width: 8px;
-      height: 8px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
       background: var(--muted-dim);
+      margin-top: 5px;
       flex-shrink: 0;
-      box-shadow: 0 0 0 3px rgba(255,255,255,0.04);
+      box-shadow: 0 0 0 3px rgba(100,116,139,0.15);
     }
     .rf-chat-status-dot[data-online="true"] {
-      background: var(--green);
-      box-shadow: 0 0 0 3px var(--green-dim), 0 0 10px rgba(52,211,153,0.35);
+      background: #34d399;
+      box-shadow: 0 0 0 3px rgba(52,211,153,0.2);
     }
-    .rf-chat-head-actions { display: flex; gap: 4px; align-items: center; }
+
+    .rf-chat-head-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+    }
     .rf-chat-icon-btn {
+      display: grid;
+      place-items: center;
       width: 32px;
       height: 32px;
-      border: 1px solid transparent;
+      border: none;
       border-radius: 8px;
       background: transparent;
       color: var(--muted);
       cursor: pointer;
-      display: grid;
-      place-items: center;
-      transition: all 0.12s ease;
+      transition: background 0.12s ease, color 0.12s ease;
     }
     .rf-chat-icon-btn:hover {
-      background: rgba(255,255,255,0.05);
-      color: var(--text);
-      border-color: var(--border);
-    }
-    .rf-chat-icon-btn svg { width: 16px; height: 16px; stroke-width: 2; }
-
-    .rf-chat-body {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .rf-chat-setup, .rf-chat-auth, .rf-chat-messages-wrap {
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-      padding: 14px;
-    }
-
-    .rf-chat-setup h3 {
-      margin: 0 0 8px;
-      font-size: 14px;
-      font-weight: 650;
-      color: var(--text);
-    }
-    .rf-chat-setup p, .rf-chat-setup li {
-      color: var(--text-secondary);
-      font-size: 12.5px;
-      line-height: 1.55;
-    }
-    .rf-chat-setup ol { margin: 10px 0; padding-left: 18px; }
-    .rf-chat-setup li { margin: 6px 0; }
-    .rf-chat-setup code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 11px;
-      padding: 1px 5px;
-      border-radius: 4px;
       background: rgba(255,255,255,0.06);
-      color: var(--accent);
-      border: 1px solid var(--border);
-    }
-    .rf-chat-setup .rf-chat-warn {
-      margin-top: 12px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid rgba(251,191,36,0.25);
-      background: var(--amber-dim);
-      color: #fde68a;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    .rf-chat-auth-card {
-      margin: auto 0;
-      padding: 4px 2px 12px;
-    }
-    .rf-chat-auth-card h3 {
-      margin: 0 0 6px;
-      font-size: 14px;
-      font-weight: 650;
       color: var(--text);
     }
-    .rf-chat-auth-card p {
-      margin: 0 0 14px;
-      color: var(--muted);
-      font-size: 12.5px;
-      line-height: 1.5;
-    }
-    .rf-chat-field { margin-bottom: 12px; }
-    .rf-chat-field label {
-      display: block;
-      margin-bottom: 5px;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .rf-chat-field input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xs);
-      background: var(--bg);
-      color: var(--text);
-      font: 400 13px var(--font);
-      outline: none;
-    }
-    .rf-chat-field input:focus {
-      border-color: var(--focus-border);
-      box-shadow: var(--focus-ring);
-    }
-    .rf-chat-auth-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 4px;
-    }
-    .rf-chat-auth-actions .btn { width: 100%; justify-content: center; }
-    .rf-chat-auth-msg {
-      margin-top: 10px;
-      font-size: 12px;
-      color: var(--muted);
-      min-height: 18px;
-    }
-    .rf-chat-auth-msg[data-type="error"] { color: #fca5a5; }
-    .rf-chat-auth-msg[data-type="ok"] { color: #6ee7b7; }
+    .rf-chat-icon-btn svg { width: 16px; height: 16px; }
 
-    .rf-chat-messages {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding-bottom: 8px;
-    }
-    .rf-chat-empty {
-      margin: 40px 12px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-    .rf-chat-msg {
-      max-width: 92%;
-      padding: 8px 11px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: var(--bg-elevated);
-      align-self: flex-start;
-    }
-    .rf-chat-msg.mine {
-      align-self: flex-end;
-      background: var(--accent-dim);
-      border-color: var(--accent-border);
-    }
-    .rf-chat-msg-meta {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 3px;
-    }
-    .rf-chat-msg-author {
-      font-size: 11px;
-      font-weight: 650;
-      color: var(--accent);
-    }
-    .rf-chat-msg-author[data-clickable="true"] {
-      cursor: pointer;
-      text-decoration: underline;
-      text-decoration-color: transparent;
-      transition: text-decoration-color 0.12s ease, color 0.12s ease;
-    }
-    .rf-chat-msg-author[data-clickable="true"]:hover {
-      text-decoration-color: var(--accent);
-      color: #a8f75a;
-    }
-    [data-theme="classic"] .rf-chat-msg-author[data-clickable="true"]:hover {
-      color: #67e8f9;
-    }
-    .rf-chat-mode-pill {
+    .rf-chat-userbar {
       display: none;
-      margin-top: 2px;
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--amber);
-      letter-spacing: 0.02em;
+      padding: 8px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.015);
+      flex-shrink: 0;
     }
-    .rf-chat-mode-pill[data-show="true"] { display: block; }
-    .rf-chat-back[hidden] { display: none !important; }
+    .rf-chat-userbar[data-show="true"] { display: block; }
+    .rf-chat-userbar strong { color: var(--text-secondary); font-weight: 600; }
 
     .rf-chat-tabs {
       display: none;
       gap: 6px;
-      padding: 8px 10px;
+      padding: 8px 12px;
       border-bottom: 1px solid var(--border);
-      background: rgba(255,255,255,0.02);
       overflow-x: auto;
       flex-shrink: 0;
-      scrollbar-width: thin;
+      scrollbar-width: none;
     }
+    .rf-chat-tabs::-webkit-scrollbar { display: none; }
     .rf-chat-tabs[data-show="true"] { display: flex; }
-    .rf-chat-tabs::-webkit-scrollbar { height: 4px; }
-    .rf-chat-tabs::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,0.1);
-      border-radius: 2px;
-    }
+
     .rf-chat-tab {
-      position: relative;
-      flex: 0 0 auto;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      max-width: 140px;
-      padding: 6px 10px;
-      border: 1px solid var(--border);
+      padding: 6px 12px;
       border-radius: 999px;
-      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      background: transparent;
       color: var(--muted);
-      font: 600 11.5px var(--font);
+      font: 500 12px var(--font);
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.12s ease;
     }
     .rf-chat-tab:hover {
-      color: var(--text);
-      border-color: var(--border-strong);
-      background: var(--card-raised);
+      background: rgba(255,255,255,0.04);
+      color: var(--text-secondary);
     }
     .rf-chat-tab[data-active="true"] {
-      color: var(--accent);
-      border-color: var(--accent-border);
       background: var(--accent-dim);
-      box-shadow: inset 0 0 0 1px var(--accent-border);
-    }
-    .rf-chat-tab-label {
-      overflow: hidden;
-      text-overflow: ellipsis;
+      border-color: var(--accent-border);
+      color: var(--accent);
+      font-weight: 600;
     }
     .rf-chat-tab-badge {
       display: none;
       min-width: 16px;
       height: 16px;
-      padding: 0 4px;
+      padding: 0 5px;
       border-radius: 999px;
       background: var(--red);
       color: #fff;
@@ -1543,89 +1574,255 @@
     }
     .rf-chat-tab-badge[data-show="true"] { display: inline-block; }
 
+    .rf-chat-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .rf-chat-setup {
+      padding: 20px 18px;
+      overflow-y: auto;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .rf-chat-setup h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      color: var(--text);
+    }
+    .rf-chat-setup ol, .rf-chat-setup ul {
+      margin: 8px 0 12px 18px;
+      padding: 0;
+    }
+    .rf-chat-setup code {
+      font-size: 12px;
+      background: var(--bg);
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    .rf-chat-warn {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: var(--amber-dim);
+      border-left: 3px solid var(--amber);
+      color: #fde68a;
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+
+    .rf-chat-auth {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      overflow-y: auto;
+    }
+    .rf-chat-auth[hidden] { display: none !important; }
+    .rf-chat-auth-card {
+      width: 100%;
+      max-width: 300px;
+    }
+    .rf-chat-auth-card h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+      font-weight: 650;
+      color: var(--text);
+    }
+    .rf-chat-auth-card > p {
+      margin: 0 0 16px;
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .rf-chat-field { margin-bottom: 14px; }
+    .rf-chat-field label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    .rf-chat-field input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      background: var(--bg);
+      color: var(--text);
+      font: 400 13.5px var(--font);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .rf-chat-field input:focus {
+      border-color: var(--focus-border);
+      box-shadow: var(--focus-ring);
+    }
+    .rf-chat-auth-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .rf-chat-auth-actions .btn { flex: 1; }
+    .rf-chat-auth-msg {
+      margin-top: 12px;
+      font-size: 12.5px;
+      min-height: 18px;
+    }
+    .rf-chat-auth-msg[data-type="error"] { color: #fca5a5; }
+    .rf-chat-auth-msg[data-type="ok"] { color: #6ee7b7; }
+
+    .rf-chat-messages-wrap {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 12px 12px 8px;
+    }
+    .rf-chat-messages-wrap[hidden] { display: none !important; }
+
+    .rf-chat-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .rf-chat-msg {
+      max-width: 88%;
+      align-self: flex-start;
+      padding: 8px 12px 10px;
+      border-radius: 12px 12px 12px 4px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+    }
+    .rf-chat-msg.mine {
+      align-self: flex-end;
+      background: var(--accent-dim);
+      border-color: var(--accent-border);
+      border-radius: 12px 12px 4px 12px;
+    }
+    .rf-chat-msg-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+      flex-wrap: wrap;
+    }
+    .rf-chat-msg-author {
+      font-size: 11.5px;
+      font-weight: 650;
+      color: var(--accent);
+    }
+    .rf-chat-msg.mine .rf-chat-msg-author { color: var(--accent); }
+    .rf-chat-msg-author[data-clickable="true"] {
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
     .rf-chat-msg-time {
-      font-size: 10px;
+      font-size: 10.5px;
       color: var(--muted-dim);
-      font-variant-numeric: tabular-nums;
+      font-weight: 500;
     }
     .rf-chat-msg-text {
-      font-size: 13px;
+      font-size: 13.5px;
       line-height: 1.45;
       color: var(--text);
       white-space: pre-wrap;
       word-break: break-word;
     }
 
+    .rf-chat-empty {
+      padding: 36px 16px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .rf-chat-empty strong { color: var(--text-secondary); }
+
     .rf-chat-compose {
-      border-top: 1px solid var(--border);
-      padding: 10px 12px;
-      background: var(--bg-elevated);
       display: none;
       gap: 8px;
+      padding: 10px 12px 12px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-elevated);
+      flex-shrink: 0;
       align-items: flex-end;
     }
     .rf-chat-compose[data-show="true"] { display: flex; }
     .rf-chat-compose textarea {
       flex: 1;
       min-height: 40px;
-      max-height: 110px;
-      resize: none;
-      padding: 9px 11px;
+      max-height: 120px;
+      padding: 10px 12px;
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 12px;
       background: var(--bg);
       color: var(--text);
-      font: 400 13px var(--font);
-      line-height: 1.4;
+      font: 400 13.5px var(--font);
+      resize: none;
       outline: none;
+      line-height: 1.4;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
     .rf-chat-compose textarea:focus {
       border-color: var(--focus-border);
       box-shadow: var(--focus-ring);
     }
+    .rf-chat-compose textarea:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
     .rf-chat-send {
       width: 40px;
       height: 40px;
+      border-radius: 12px;
       border: none;
-      border-radius: 10px;
-      background: var(--btn-primary-bg);
-      color: var(--btn-primary-color);
-      cursor: pointer;
+      background: var(--accent);
+      color: #0a0f08;
       display: grid;
       place-items: center;
+      cursor: pointer;
       flex-shrink: 0;
-      box-shadow: var(--btn-primary-shadow);
+      transition: filter 0.12s, transform 0.12s;
     }
-    .rf-chat-send:hover { filter: brightness(1.08); }
-    .rf-chat-send:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
-    .rf-chat-send svg { width: 18px; height: 18px; stroke-width: 2; }
-
-    .rf-chat-userbar {
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 8px 14px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(255,255,255,0.02);
-      font-size: 11.5px;
-      color: var(--muted);
+    .rf-chat-send:hover:not(:disabled) {
+      filter: brightness(1.08);
+      transform: scale(1.04);
     }
-    .rf-chat-userbar[data-show="true"] { display: flex; }
-    .rf-chat-userbar strong { color: var(--text-secondary); font-weight: 600; }
+    .rf-chat-send:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .rf-chat-send svg { width: 18px; height: 18px; }
 
-    @media (max-width: 520px) {
+    @media (max-width: 480px) {
       .rf-chat-panel {
-        right: 12px;
-        bottom: 12px;
-        width: calc(100vw - 24px);
-        height: min(70vh, calc(100vh - 24px));
+        right: 10px;
+        bottom: 80px;
+        width: calc(100vw - 20px);
+        height: min(70vh, 560px);
       }
-      .rf-chat-fab { right: 16px; bottom: 16px; }
+      .rf-chat-fab {
+        right: 14px;
+        bottom: 14px;
+      }
     }
 
-    .hidden { display: none !important; }
-  </style>
+    @media (max-width: 960px) {
+      .sd-paste-grid { grid-template-columns: 1fr; }
+      .sd-filter-bar { flex-direction: column; align-items: stretch; }
+      .sd-kpi-main strong { font-size: 20px; }
+    }
+</style>
 </head>
 <body>
 
@@ -1677,6 +1874,7 @@
         <button class="nav-tab" data-view="jira" role="tab"><i data-lucide="book-open"></i> Guia de Chamados do JIRA</button>
         <button class="nav-tab" data-view="bancos" role="tab"><i data-lucide="landmark"></i> Códigos dos Bancos</button>
         <button class="nav-tab" data-view="ocorrencias" role="tab"><i data-lucide="clipboard-list"></i> Tipos de ocorrência</button>
+        <button class="nav-tab" data-view="saldo" role="tab"><i data-lucide="wallet"></i> Saldo Devedor</button>
       </nav>
 
       <!-- PAINEL 1: MACROS -->
@@ -1942,6 +2140,97 @@
         </section>
       </div>
 
+      <!-- PAINEL 5: SALDO DEVEDOR (DESIGN SAAS PREMIUM + PARSER INTELIGENTE) -->
+      <div id="view-saldo" class="view-panel">
+        <section class="card">
+          <div class="section-head">
+            <div>
+              <h2 class="title">Calculadora de Saldo Devedor</h2>
+              <div class="hint">Cole os dados do Mêntore (Crédito e Extrato). O leitor detecta os contratos e cruza os pagamentos automaticamente.</div>
+            </div>
+            <div class="sd-actions">
+              <button id="sd-processar" class="btn primary" type="button"><i data-lucide="calculator"></i> Processar</button>
+              <button id="sd-exportar" class="btn" type="button"><i data-lucide="download"></i> Exportar CSV</button>
+              <button id="sd-limpar" class="btn danger" type="button"><i data-lucide="eraser"></i> Limpar</button>
+            </div>
+          </div>
+
+          <div class="sd-paste-grid">
+            <div class="sd-box">
+              <label for="sd-creditos">1. Crédito HUB <span class="sd-tag">Crédito › Ativos</span></label>
+              <textarea id="sd-creditos" placeholder="Selecione a tabela na aba Crédito -> Ativos no Mêntore, Ctrl+C e cole aqui."></textarea>
+              <div class="sd-detect" id="sd-detect-creditos"></div>
+            </div>
+            <div class="sd-box">
+              <label for="sd-pagamentos">2. Pagamentos do Extrato <span class="sd-tag">Extrato › Movimentações</span></label>
+              <textarea id="sd-pagamentos" placeholder="Copie as linhas de movimentação do Extrato no Mêntore (&quot;Pagamento da parcela ... CCB: 6304138&quot;) e cole aqui."></textarea>
+              <div class="sd-detect" id="sd-detect-pagamentos"></div>
+            </div>
+            <div class="sd-box">
+              <label for="sd-descontos">3. Descontos <span class="sd-tag">opcional</span></label>
+              <textarea id="sd-descontos" placeholder="Cole a tabela de descontos, se houver."></textarea>
+              <div class="sd-detect" id="sd-detect-descontos"></div>
+            </div>
+          </div>
+
+          <div class="sd-filter-bar">
+            <div style="flex: 1; max-width: 320px;">
+              <input id="sd-search" type="search" placeholder="Pesquisar por CCB ou status…">
+            </div>
+            <label class="check" style="font-size: 12.5px;">
+              <input id="sd-only-open" type="checkbox" checked> Exibir apenas contratos em aberto / com saldo devedor
+            </label>
+          </div>
+
+          <div class="sd-kpis" id="sd-kpis" hidden>
+            <div class="sd-kpi sd-kpi-main">
+              <span>Saldo Devedor Total</span>
+              <strong id="sd-kpi-saldo">R$ 0,00</strong>
+            </div>
+            <div class="sd-kpi">
+              <span>Valor a Pagar Original</span>
+              <strong id="sd-kpi-pagar">R$ 0,00</strong>
+            </div>
+            <div class="sd-kpi">
+              <span>Descontos</span>
+              <strong id="sd-kpi-desc">R$ 0,00</strong>
+            </div>
+            <div class="sd-kpi">
+              <span>Já Pago (Extrato)</span>
+              <strong id="sd-kpi-pago">R$ 0,00</strong>
+            </div>
+            <div class="sd-kpi">
+              <span>Contratos Ativos</span>
+              <strong id="sd-kpi-qtd">0</strong>
+            </div>
+          </div>
+
+          <div id="sd-alertas"></div>
+
+          <div class="sd-table-wrap" id="sd-table-wrap" hidden>
+            <table class="sd-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>CCB</th>
+                  <th class="num">Valor a Pagar</th>
+                  <th class="num">Desconto</th>
+                  <th class="num">Já Pago (Extrato)</th>
+                  <th class="num">Saldo Devedor</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="sd-tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="sd-empty" id="sd-empty">
+            <i data-lucide="clipboard-paste"></i>
+            <p>Cole as tabelas de Crédito e Extrato do Mêntore nos campos acima para calcular o saldo devedor.</p>
+          </div>
+        </section>
+      </div>
+
     </section>
 
     <!-- CONTROLE DE PONTO -->
@@ -2115,7 +2404,7 @@
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<!-- SCRIPT 0: PERSISTENCIA UNIFICADA (BACKUP SEGURO) -->
+<!-- SCRIPT 0: PERSISTENCIA UNIFICADA -->
 <script>
 (() => {
   'use strict';
@@ -2274,12 +2563,8 @@
         alert('Arquivo JSON inválido.');
         return;
       }
-      // Accept unified format or macros-only exports
       if (!Array.isArray(obj.macros) && Array.isArray(obj)) {
         obj = { macros: obj, ponto: { version: 1, records: [] }, ocorrencias_uses: {} };
-      }
-      if (!Array.isArray(obj.macros) && obj.kind === 'rf-macros' && Array.isArray(obj.macros) === false) {
-        // no-op guard
       }
       if (!Array.isArray(obj.macros)) {
         alert('Este arquivo não contém a lista de macros (campo "macros").');
@@ -2287,7 +2572,7 @@
       }
       const s = summarize(obj);
       if (!hasMeaningfulData(obj)) {
-        alert('Este arquivo está vazio (sem macros, ponto ou ocorrências). Nada foi importado.');
+        alert('Este arquivo está vazio. Nada foi importado.');
         return;
       }
       const ok = confirm(
@@ -2295,12 +2580,10 @@
         'Arquivo: ' + (file.name || 'backup.json') + '\n' +
         '• ' + s.macrosLen + ' macros\n' +
         '• ' + s.pontoLen + ' registros de ponto\n' +
-        '• ' + s.usesLen + ' ocorrências contadas\n' +
-        '• updatedAt: ' + s.updated + '\n\n' +
-        'OK = substituir os dados deste navegador pelos do arquivo.\n' +
-        'Cancelar = não alterar nada.'
+        '• ' + s.usesLen + ' ocorrências contadas\n\n' +
+        'OK = substituir os dados deste navegador pelos do arquivo.'
       );
-      if (!ok) return; // Cancel changes NOTHING
+      if (!ok) return;
       if (!applyImported(obj)) {
         alert('Falha ao gravar os dados importados.');
         return;
@@ -2342,16 +2625,15 @@
     try {
       const ok = await verifyPermission(handle, false);
       if (!ok) {
-        setStatus('warning', (handle.name || 'arquivo.json') + ' — permissão expirada · clique em Vincular');
+        setStatus('warning', (handle.name || 'arquivo.json') + ' — permissão expirada');
         return;
       }
 
       const local = gatherUnified();
-      // ANTI-WIPE: never overwrite a file that has data with empty local state
       if (!hasMeaningfulData(local)) {
         const existing = await readExisting(handle);
         if (hasMeaningfulData(existing)) {
-          setStatus('warning', 'Auto-save bloqueado (local vazio, arquivo tem dados)');
+          setStatus('warning', 'Auto-save bloqueado (local vazio)');
           return;
         }
       }
@@ -2366,11 +2648,10 @@
 
   async function connect() {
     if (!SAVE_SUPPORTED) {
-      alert('Vincular auto-save requer Chrome ou Edge. Use "Baixar backup" / "Importar backup" neste navegador.');
+      alert('Vincular auto-save requer Chrome ou Edge.');
       return;
     }
 
-    // Reconnect existing handle if permission was lost
     if (handle) {
       const already = await verifyPermission(handle, false);
       if (!already) {
@@ -2379,11 +2660,10 @@
           setStatus('connected', 'Reconectado a ' + (handle.name || 'arquivo.json'));
           await persist();
         } else {
-          setStatus('warning', 'Permissão negada — tente novamente');
+          setStatus('warning', 'Permissão negada');
         }
         return;
       }
-      // Already connected: optional force save
       await persist();
       return;
     }
@@ -2401,31 +2681,27 @@
         const choice = confirm(
           'Este arquivo já contém dados:\n' +
           '• ' + s.macrosLen + ' macros\n' +
-          '• ' + s.pontoLen + ' registros de ponto\n' +
-          '• ' + s.usesLen + ' ocorrências\n' +
-          '• updatedAt: ' + s.updated + '\n\n' +
-          'OK = IMPORTAR do arquivo para este navegador (e vincular auto-save).\n' +
-          'Cancelar = apenas VINCULAR para saves futuros (NÃO sobrescreve o arquivo agora; NÃO importa).'
+          '• ' + s.pontoLen + ' registros de ponto\n\n' +
+          'OK = IMPORTAR do arquivo para este navegador.\n' +
+          'Cancelar = apenas VINCULAR para saves futuros.'
         );
         if (choice) {
           if (!applyImported(existing)) {
-            alert('Falha ao importar os dados do arquivo. Vínculo cancelado.');
+            alert('Falha ao importar do arquivo.');
             return;
           }
           handle = picked;
           await idbSet(HANDLE_KEY, handle);
-          alert('Dados importados e auto-save vinculado. A página será recarregada.');
+          alert('Dados importados! A página será recarregada.');
           location.reload();
           return;
         }
-        // Cancel = connect only, do NOT persist/overwrite now
         handle = picked;
         await idbSet(HANDLE_KEY, handle);
-        setStatus('connected', 'Vinculado (sem sobrescrever) · ' + (handle.name || 'arquivo.json'));
+        setStatus('connected', 'Vinculado · ' + (handle.name || 'arquivo.json'));
         return;
       }
 
-      // File empty or new: safe to write current local state
       handle = picked;
       await idbSet(HANDLE_KEY, handle);
       if (isLocalEmpty()) {
@@ -2442,7 +2718,7 @@
 
   async function init() {
     if (!SAVE_SUPPORTED) {
-      setStatus('disconnected', 'Auto-save indisponível · use Baixar/Importar backup');
+      setStatus('disconnected', 'Auto-save indisponível');
       return;
     }
     const stored = await idbGet(HANDLE_KEY);
@@ -2455,7 +2731,7 @@
     if (ok) {
       setStatus('connected', 'Auto-save · ' + (handle.name || 'arquivo.json'));
     } else {
-      setStatus('warning', (handle.name || 'arquivo.json') + ' — permissão expirada · clique em Vincular');
+      setStatus('warning', (handle.name || 'arquivo.json') + ' — permissão expirada');
     }
   }
 
@@ -2467,12 +2743,11 @@
   if (linkBtn) linkBtn.addEventListener('click', connect);
 
   init();
-
-  window.RFStorage = { notifyChange: persist, downloadBackup: downloadBackup, importBackup: importBackup };
+  window.RFStorage = { notifyChange: persist, downloadBackup, importBackup };
 })();
 </script>
 
-<!-- SCRIPT 1: NAVEGAÇÃO E GESTÃO DE MACROS -->
+<!-- SCRIPT 1: NAVEGAÇÃO E MACROS -->
 <script>
 (() => {
   'use strict';
@@ -2711,328 +2986,6 @@
       syncStatus('Erro ao copiar.', 'error');
     }
   };
-
-  function bookmarkletCode() {
-    var D=document, W=window, PREFIX='RF_SYNC_V2:', MKEY='rf_macros_blip_db_v2', UKEY='rf_macro_uses_blip_v1', TKEY='rf_widget_theme_v1';
-    var state={ query:'', editor:null, position:null }, drop=null, options=[], choice=0, cleanup=[], live=true;
-
-    var THEMES={
-      lime:{
-        accent:'#89f336', accentMuted:'#64748b', bg:'#111827', bgHead:'#0b0f19', bgInput:'#070b12', bgBtn:'#0b0f19',
-        border:'rgba(255,255,255,0.08)', borderSoft:'rgba(255,255,255,0.06)', text:'#f1f5f9', muted:'#64748b',
-        noteBg:'#89f336', noteColor:'#0a0f08', dropBg:'#111827', dropBorder:'rgba(255,255,255,0.1)', dropHover:'#1a2336',
-        radius:'12px'
-      },
-      classic:{
-        accent:'#22d3ee', accentMuted:'#94a3b8', bg:'#0f172a', bgHead:'#0c1220', bgInput:'#070b14', bgBtn:'#0c1220',
-        border:'rgba(148,163,184,0.18)', borderSoft:'rgba(148,163,184,0.12)', text:'#f1f5f9', muted:'#94a3b8',
-        noteBg:'#10b981', noteColor:'#052e20', dropBg:'#0f172a', dropBorder:'rgba(148,163,184,0.22)', dropHover:'#1a2740',
-        radius:'14px'
-      }
-    };
-
-    function getThemeName(){
-      try{ var t=W.localStorage.getItem(TKEY); return (t==='classic'||t==='lime')?t:'lime'; }catch(e){ return 'lime'; }
-    }
-    function setThemeName(t){ try{ W.localStorage.setItem(TKEY,t); }catch(e){} }
-    function T(){ return THEMES[getThemeName()]||THEMES.lime; }
-
-    if(W.__RF_ASSISTANT_CLEANUP__) W.__RF_ASSISTANT_CLEANUP__();
-    function stop() {
-      live=false; cleanup.forEach(function(f){f();}); cleanup=[];
-      var w=D.getElementById('rf-assistant-widget'); if(w) w.remove();
-      var d=D.getElementById('rf-assistant-dropdown'); if(d) d.remove();
-      var n=D.getElementById('rf-assistant-note'); if(n) n.remove();
-      var e=D.getElementById('rf-et-anim'); if(e) e.remove();
-      if(W.__RF_ASSISTANT_CLEANUP__===stop) delete W.__RF_ASSISTANT_CLEANUP__;
-    }
-    W.__RF_ASSISTANT_CLEANUP__=stop;
-
-    function listen(t,e,h,o){ t.addEventListener(e,h,o); cleanup.push(function(){ try{t.removeEventListener(e,h,o);}catch(x){} }); }
-    function read(k,f){ try{ var v=JSON.parse(W.localStorage.getItem(k)); return v==null?f:v; }catch(e){ return f; } }
-    function write(k,v){ try{ W.localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } }
-    function macroList(){ var data=read(MKEY,[]); return Array.isArray(data)?data:[]; }
-
-    function showNote(msg,color){
-      var th=T();
-      var note=D.getElementById('rf-assistant-note');
-      if(!note){
-        note=D.createElement('div'); note.id='rf-assistant-note';
-        note.style.cssText='position:fixed;right:20px;bottom:20px;z-index:2147483647;padding:10px 14px;border-radius:8px;font:600 13px Inter,system-ui;box-shadow:0 6px 20px #0009;transition:all 0.3s';
-        D.body.appendChild(note);
-      }
-      note.textContent=msg;
-      note.style.background=color||th.noteBg;
-      note.style.color=th.noteColor;
-      setTimeout(function(){ if(note) note.remove(); }, 3000);
-    }
-
-    function showEtAnim(){
-      var old=D.getElementById('rf-et-anim'); if(old) old.remove();
-      var th=T();
-      var el=D.createElement('div');
-      el.id='rf-et-anim';
-      el.textContent='👽';
-      el.setAttribute('aria-hidden','true');
-      el.style.cssText='position:fixed;left:50%;bottom:96px;z-index:2147483647;font-size:48px;line-height:1;pointer-events:none;transform:translate(-50%,0) scale(0.55);opacity:0;transition:transform 0.85s cubic-bezier(0.22,1,0.36,1),opacity 0.75s ease;filter:drop-shadow(0 0 18px '+th.accent+');';
-      D.body.appendChild(el);
-      requestAnimationFrame(function(){
-        requestAnimationFrame(function(){
-          el.style.transform='translate(-50%,-150px) scale(1.28)';
-          el.style.opacity='1';
-        });
-      });
-      setTimeout(function(){
-        el.style.opacity='0';
-        el.style.transform='translate(-50%,-210px) scale(0.95)';
-      }, 520);
-      setTimeout(function(){ if(el.parentNode) el.remove(); }, 1100);
-    }
-
-    function applySync(text){
-      if(!text || text.indexOf(PREFIX)!==0) return false;
-      try {
-        var data=JSON.parse(text.slice(PREFIX.length));
-        if(data&&Array.isArray(data.macros)){ write(MKEY,data.macros); widget(); return true; }
-      } catch(e){}
-      return false;
-    }
-
-    function doSyncRefresh(){
-      function handleText(t){
-        if(t && t.indexOf(PREFIX)===0){
-          if(applySync(t)){
-            showNote('Macros sincronizadas com sucesso!');
-            return true;
-          }
-        }
-        return false;
-      }
-      function promptFallback(){
-        var val = prompt('Cole aqui o texto de sincronização copiado do painel (RF_SYNC_V2:...):');
-        if(val){
-          if(handleText(val.trim())){
-            // sucesso
-          } else {
-            alert('Texto de sincronização inválido.');
-          }
-        }
-      }
-      if(navigator.clipboard && navigator.clipboard.readText){
-        navigator.clipboard.readText().then(function(t){
-          if(!handleText(t)) promptFallback();
-        }).catch(function(){ promptFallback(); });
-      } else {
-        promptFallback();
-      }
-    }
-
-    function roots(root,seen,out){
-      seen=seen||new WeakSet(); out=out||[]; if(!root||seen.has(root)) return out; seen.add(root); out.push(root);
-      var all=root.querySelectorAll?root.querySelectorAll('*'):[];
-      for(var i=0;i<all.length;i++){
-        var n=all[i]; if(n.shadowRoot) roots(n.shadowRoot,seen,out);
-        if(n.tagName==='IFRAME'||n.tagName==='FRAME'){ try{roots(n.contentDocument,seen,out);}catch(e){} }
-      }
-      return out;
-    }
-
-    function isEditor(n){ return !!(n&&!(n.closest&&n.closest('#rf-assistant-widget'))&&(n.tagName==='TEXTAREA'||n.tagName==='INPUT'||n.isContentEditable||(n.getAttribute&&(n.getAttribute('contenteditable')==='true'||n.getAttribute('role')==='textbox')))); }
-    function activeEditor(){
-      var n=D.activeElement;
-      while(n){
-        if(n.shadowRoot&&n.shadowRoot.activeElement) n=n.shadowRoot.activeElement;
-        else if(n.contentDocument&&n.contentDocument.activeElement) n=n.contentDocument.activeElement;
-        else break;
-      }
-      return isEditor(n)?n:null;
-    }
-    function eventEditor(e){ if(isEditor(e.target)) return e.target; var p=e.composedPath?e.composedPath():[]; for(var i=0;i<p.length;i++) if(isEditor(p[i])) return p[i]; return activeEditor(); }
-
-    function beforeCaret(n){
-      if(n.tagName==='TEXTAREA'||n.tagName==='INPUT'){ var v=n.value||'', p=n.selectionStart==null?v.length:n.selectionStart; return v.slice(0,p); }
-      var sel=(n.ownerDocument.defaultView||W).getSelection();
-      if(sel&&sel.rangeCount){ var r=sel.getRangeAt(0).cloneRange(); r.collapse(true); try{ r.setStart(n,0); return r.toString(); }catch(x){} }
-      return n.textContent||'';
-    }
-
-    function ticket(){
-      var selectors=['#ticket-sequential-id','[data-testid="ticket-number"]','[data-testid*="ticket"]','.ticket-number','[id*="ticket"]'], all=roots(D);
-      for(var i=0;i<all.length;i++) for(var j=0;j<selectors.length;j++){
-        var el=all[i].querySelector&&all[i].querySelector(selectors[j]);
-        if(el&&el.textContent){ var val=el.textContent.replace(/[^0-9A-Za-z]/g,''); if(val) return val; }
-      }
-      return 'N/A';
-    }
-    function nowDate(){ var d=new Date(); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(); }
-    function nowTime(){ var d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
-    function expand(val){ return val.replace(/\{ticket\}/gi,ticket()).replace(/\{data\}/gi,nowDate()).replace(/\{hora\}/gi,nowTime()); }
-
-    function nativeValue(n,val){
-      var proto=n.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype, desc=Object.getOwnPropertyDescriptor(proto,'value');
-      if(desc&&desc.set) desc.set.call(n,val); else n.value=val;
-    }
-
-    function insert(text,node,removeShortcut){
-      node=node||activeEditor()||state.editor; text=expand(text); if(!node) return;
-      if(node.tagName==='TEXTAREA'||node.tagName==='INPUT'){
-        var v=node.value||'', pos=node.selectionStart==null?v.length:node.selectionStart, start=pos;
-        if(removeShortcut){ var slash=v.lastIndexOf('/',pos-1); if(slash>=0) start=slash; }
-        nativeValue(node,v.slice(0,start)+text+v.slice(pos)); node.focus();
-        if(node.setSelectionRange) node.setSelectionRange(start+text.length,start+text.length);
-      } else {
-        node.focus(); var sel=(node.ownerDocument.defaultView||W).getSelection();
-        if(sel&&sel.rangeCount){
-          var r=sel.getRangeAt(0);
-          if(removeShortcut){ var typed=beforeCaret(node), m=typed.match(/\/[^\s]*$/); if(m){ try{ r.setStart(r.startContainer,Math.max(0,r.startOffset-m[0].length)); r.deleteContents(); }catch(x){} } }
-          r.insertNode(node.ownerDocument.createTextNode(text)); r.collapse(false); sel.removeAllRanges(); sel.addRange(r);
-        } else node.appendChild(node.ownerDocument.createTextNode(text));
-      }
-      try{ node.dispatchEvent(new InputEvent('input',{bubbles:true,composed:true})); }catch(x){}
-      closeDrop();
-    }
-
-    function uses(){ return read(UKEY,{}); }
-    function useMacro(m,node,removeShortcut){
-      var u=uses(); u[m.id]=(Number(u[m.id])||0)+1; write(UKEY,u);
-      insert(m.content,node,removeShortcut);
-      showEtAnim();
-      widget();
-    }
-
-    function closeDrop(){ if(drop) drop.remove(); drop=null; options=[]; choice=0; }
-    function paint(){
-      if(!drop) return;
-      var th=T();
-      for(var i=0;i<drop.children.length;i++){ drop.children[i].style.background=i===choice?th.dropHover:'transparent'; }
-      var sel=drop.children[choice];
-      if(sel&&sel.scrollIntoView) sel.scrollIntoView({block:'nearest'});
-    }
-    
-    function menu(list,node){
-      closeDrop(); if(!list.length) return; options=list;
-      var th=T();
-      drop=D.createElement('div'); drop.id='rf-assistant-dropdown';
-      drop.style.cssText='position:fixed;z-index:2147483647;width:min(340px,calc(100vw - 16px));max-height:200px;overflow:auto;padding:4px 0;border:1px solid '+th.dropBorder+';border-radius:10px;background:'+th.dropBg+';color:'+th.text+';box-shadow:0 8px 28px #000b;font:13px Inter,system-ui';
-      list.forEach(function(m,i){
-        var r=D.createElement('div'); r.style.cssText='padding:8px 12px;cursor:pointer;display:flex;gap:8px;align-items:center';
-        var k=D.createElement('b'), p=D.createElement('span');
-        k.textContent=m.shortcut; k.style.cssText='color:'+th.accent+';font-family:monospace';
-        p.textContent=m.content; p.style.cssText='overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:'+th.muted;
-        r.appendChild(k); r.appendChild(p);
-        r.onmousedown=function(e){ e.preventDefault(); useMacro(m,node,true); };
-        drop.appendChild(r);
-      });
-      D.body.appendChild(drop);
-      var rect=node.getBoundingClientRect(), top=rect.top-drop.offsetHeight-8;
-      if(top<8) top=Math.min(W.innerHeight-drop.offsetHeight-8,rect.bottom+8);
-      drop.style.left=Math.max(8,Math.min(rect.left,W.innerWidth-drop.offsetWidth-8))+'px';
-      drop.style.top=Math.max(8,top)+'px'; paint();
-    }
-
-    function inspect(node){
-      if(!node) return closeDrop(); state.editor=node;
-      var m=beforeCaret(node).match(/\/([\wÀ-ÿ-]*)$/u); if(!m) return closeDrop();
-      var q=m[1].toLowerCase();
-      menu(macroList().filter(function(x){ return x.shortcut.toLowerCase().indexOf('/'+q)!==-1; }),node);
-    }
-
-    function widget(){
-      var th=T();
-      var old=D.getElementById('rf-assistant-widget'); if(old) old.remove();
-      var box=D.createElement('section'); box.id='rf-assistant-widget';
-      box.style.cssText='position:fixed;right:20px;bottom:20px;z-index:2147483646;width:320px;border:1px solid '+th.border+';border-radius:'+th.radius+';background:'+th.bg+';color:'+th.text+';box-shadow:0 10px 32px #000b;overflow:hidden;font:13px Inter,system-ui';
-      if(state.position){ box.style.right='auto'; box.style.bottom='auto'; box.style.left=state.position.left+'px'; box.style.top=state.position.top+'px'; }
-
-      var head=D.createElement('div'); head.style.cssText='padding:10px 14px;background:'+th.bgHead+';display:flex;align-items:center;justify-content:space-between;cursor:move;border-bottom:1px solid '+th.borderSoft;
-      head.innerHTML='<strong style="display:flex;align-items:center;gap:6px;color:'+th.accent+'">Assistente</strong>';
-      
-      var actionsDiv=D.createElement('div'); actionsDiv.style.cssText='display:flex;align-items:center;gap:6px';
-
-      var btnTheme=D.createElement('button');
-      btnTheme.type='button';
-      btnTheme.textContent=getThemeName()==='classic'?'Tema Azul':'Tema Verde';
-      btnTheme.title=getThemeName()==='classic'?'Mudar para tema Verde':'Mudar para tema ET';
-      btnTheme.style.cssText='border:1px solid '+th.border+';background:transparent;color:'+th.accent+';font:600 10px Inter,system-ui;cursor:pointer;padding:2px 7px;border-radius:999px;letter-spacing:0.02em';
-      btnTheme.onclick=function(e){
-        e.stopPropagation();
-        setThemeName(getThemeName()==='classic'?'lime':'classic');
-        widget();
-      };
-
-      var btnRefresh=D.createElement('button'); btnRefresh.textContent='↻'; btnRefresh.title='Sincronizar macros';
-      btnRefresh.style.cssText='border:0;background:transparent;color:'+th.accent+';font:700 16px system-ui;cursor:pointer;padding:0 2px;transition:transform 0.3s';
-      btnRefresh.onclick=function(e){ e.stopPropagation(); doSyncRefresh(); };
-
-      var btnClose=D.createElement('button'); btnClose.textContent='×'; btnClose.style.cssText='border:0;background:transparent;color:'+th.muted+';font:700 18px system-ui;cursor:pointer';
-      btnClose.onclick=stop;
-
-      actionsDiv.appendChild(btnTheme);
-      actionsDiv.appendChild(btnRefresh);
-      actionsDiv.appendChild(btnClose);
-      head.appendChild(actionsDiv); box.appendChild(head);
-
-      var body=D.createElement('div'); body.style.cssText='padding:10px';
-      var input=D.createElement('input'); input.type='search'; input.placeholder='Pesquisar macro...'; input.value=state.query;
-      input.style.cssText='width:100%;padding:7px 10px;border:1px solid '+th.border+';border-radius:6px;background:'+th.bgInput+';color:'+th.text+';font:12px Inter,system-ui;outline:none';
-      
-      var list=D.createElement('div'); list.style.cssText='max-height:260px;overflow:auto;margin-top:8px';
-
-      function fill(){
-        list.innerHTML='';
-        var th2=T();
-        var q=state.query.toLowerCase(), u=uses();
-        var all=macroList().filter(function(m){ return !q || m.shortcut.toLowerCase().indexOf(q)!==-1 || m.content.toLowerCase().indexOf(q)!==-1; })
-                           .sort(function(a,b){ return Number(b.favorite)-Number(a.favorite)||(Number(u[b.id])||0)-(Number(u[a.id])||0); });
-
-        if(!all.length){ list.innerHTML='<p style="color:'+th2.muted+';margin:8px 0;font-size:12px">Nenhuma macro encontrada.</p>'; return; }
-        all.forEach(function(m){
-          var btn=D.createElement('button'); btn.type='button';
-          btn.textContent=(m.favorite?'★ ':'')+m.shortcut; btn.title=m.content;
-          btn.style.cssText='display:block;width:100%;margin:4px 0;padding:8px;border:1px solid '+th2.borderSoft+';border-radius:6px;background:'+th2.bgBtn+';color:'+th2.accent+';text-align:left;cursor:pointer;font:600 12px monospace';
-          btn.onclick=function(){ useMacro(m); };
-          list.appendChild(btn);
-        });
-      }
-
-      input.oninput=function(){ state.query=input.value; fill(); };
-      body.appendChild(input); body.appendChild(list); box.appendChild(body);
-      D.body.appendChild(box);
-
-      var moving=false, dx=0, dy=0;
-      listen(head,'mousedown',function(e){
-        if(e.target.tagName==='BUTTON') return; moving=true; var rect=box.getBoundingClientRect();
-        dx=e.clientX-rect.left; dy=e.clientY-rect.top; box.style.right='auto'; box.style.bottom='auto';
-      });
-      listen(D,'mousemove',function(e){ if(moving){ var l=Math.max(0,e.clientX-dx), t=Math.max(0,e.clientY-dy); state.position={left:l,top:t}; box.style.left=l+'px'; box.style.top=t+'px'; } });
-      listen(D,'mouseup',function(){ moving=false; });
-      fill();
-    }
-
-    function attach(){
-      roots(D).forEach(function(r){
-        if(r.__rfBound) return; r.__rfBound=true;
-        listen(r,'input',function(e){ var n=eventEditor(e); if(n) inspect(n); },true);
-        listen(r,'keydown',function(e){
-          var n=eventEditor(e); if(n) state.editor=n;
-          if(!drop) return;
-          if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); choice=(choice+(e.key==='ArrowDown'?1:options.length-1))%options.length; paint(); }
-          else if((e.key==='Enter'||e.key==='Tab')&&options[choice]){ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); useMacro(options[choice],state.editor,true); }
-          else if(e.key==='Escape') closeDrop();
-        },true);
-      });
-    }
-
-    attach(); widget();
-    if(navigator.clipboard&&navigator.clipboard.readText){
-      navigator.clipboard.readText().then(function(t){ if(t&&t.indexOf(PREFIX)===0) applySync(t); }).catch(function(){});
-    }
-  }
-
-  // Código completo embutido no favorito (arraste de novo após alterações no assistente)
-  var classicHref = 'javascript:' + encodeURIComponent('(' + bookmarkletCode.toString() + ')();void 0;');
-  var bookmarkletEl = $('bookmarklet');
-  if (bookmarkletEl) bookmarkletEl.href = classicHref;
 
   render();
 })();
@@ -3611,6 +3564,7 @@
 })();
 </script>
 
+<!-- SCRIPT DE TEMAS -->
 <script>
 (() => {
   'use strict';
@@ -3641,90 +3595,18 @@
 })();
 </script>
 
-<!-- SCRIPT: CHAT INTERNO (Supabase) -->
+<!-- SCRIPT: CHAT INTERNO (SUPABASE) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (() => {
   'use strict';
 
-  /**
-   * ═══════════════════════════════════════════════════════════
-   * CONFIGURAÇÃO DO CHAT — preencha após criar o projeto Supabase
-   * A chave "anon" é pública por design. A segurança vem de:
-   *   1) Authentication obrigatória
-   *   2) Row Level Security (RLS) na tabela team_messages
-   *   3) (Opcional) allowlist de e-mails no SQL
-   * ═══════════════════════════════════════════════════════════
-   */
   const RF_CHAT_CONFIG = {
     enabled: true,
     supabaseUrl: 'https://xxjrfeewwwxbujodvrvo.supabase.co',
     supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4anJmZWV3d3d4YnVqb2R2cnZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3ODA3NjAsImV4cCI6MjEwMTM1Njc2MH0.XA68lXz15ZDG9qfOGUeSf3M_S6xnld9fyBYfEPjWR5s',
-    // Opcional: restringir domínio no cadastro (validação só no cliente; RLS é a proteção real)
-    allowedEmailDomain: '' // ex: 'suaempresa.com' ou '' para qualquer e-mail
+    allowedEmailDomain: ''
   };
-
-  /*
-  -- Cole no SQL Editor do Supabase (uma vez):
-
-  create table if not exists public.team_messages (
-    id uuid primary key default gen_random_uuid(),
-    user_id uuid not null references auth.users (id) on delete cascade,
-    display_name text not null check (char_length(display_name) between 1 and 40),
-    body text not null check (char_length(body) between 1 and 2000),
-    created_at timestamptz not null default now()
-  );
-
-  create index if not exists team_messages_created_at_idx
-    on public.team_messages (created_at asc);
-
-  alter table public.team_messages enable row level security;
-
-  create policy "team_messages_select_authenticated"
-    on public.team_messages for select
-    to authenticated
-    using (true);
-
-  create policy "team_messages_insert_own"
-    on public.team_messages for insert
-    to authenticated
-    with check (auth.uid() = user_id);
-
-  alter publication supabase_realtime add table public.team_messages;
-
-  -- === CHAT PRIVADO (rode se a tabela já existir) ===
-  -- alter table public.team_messages
-  --   add column if not exists recipient_id uuid references auth.users(id) on delete cascade;
-  --
-  -- drop policy if exists "team_messages_select_authenticated" on public.team_messages;
-  -- drop policy if exists "team_messages_insert_own" on public.team_messages;
-  --
-  -- create policy "team_messages_select_v2"
-  --   on public.team_messages for select to authenticated
-  --   using (
-  --     recipient_id is null
-  --     or auth.uid() = user_id
-  --     or auth.uid() = recipient_id
-  --   );
-  --
-  -- create policy "team_messages_insert_v2"
-  --   on public.team_messages for insert to authenticated
-  --   with check (
-  --     auth.uid() = user_id
-  --     and (recipient_id is null or recipient_id <> auth.uid())
-  --   );
-
-  -- OPCIONAL — allowlist de e-mails (troque o domínio):
-  -- create or replace function public.is_allowed_email()
-  -- returns boolean language sql stable as $$
-  --   select coalesce(
-  --     (auth.jwt() ->> 'email') ilike '%@suaempresa.com',
-  --     false
-  --   );
-  -- $$;
-  -- Depois altere as policies para: using (public.is_allowed_email())
-  -- e with check (auth.uid() = user_id and public.is_allowed_email());
-  */
 
   const $ = (id) => document.getElementById(id);
   const fab = $('rf-chat-fab');
@@ -3764,7 +3646,6 @@
     } catch (e) {}
   }
 
-  /** Bipe curto (sem arquivo externo). */
   function playMessageSound() {
     try {
       unlockAudio();
@@ -3799,7 +3680,6 @@
     try {
       if (!('Notification' in window)) return;
       if (Notification.permission !== 'granted') return;
-      // Só quando a aba não está visível (segundo plano)
       if (!document.hidden) return;
       const n = new Notification(title || 'Chat da equipe', {
         body: body || 'Nova mensagem',
@@ -3818,10 +3698,9 @@
   function alertIncomingMessage(row) {
     if (!row) return;
     const uid = session && session.user && session.user.id;
-    if (!uid || row.user_id === uid) return; // não alerta nas próprias
+    if (!uid || row.user_id === uid) return;
 
     playMessageSound();
-
     const who = row.display_name || 'Colega';
     const preview = String(row.body || '').slice(0, 80);
     const title = row.recipient_id ? ('Privado · ' + who) : ('Equipe · ' + who);
@@ -3834,11 +3713,8 @@
   let knownIds = new Set();
   let unread = 0;
   let panelOpen = false;
-  /** @type {{ id: string, name: string } | null} */
-  let dmPeer = null; // null = chat público da equipe
-  /** @type {Map<string, { id: string, name: string }>} */
-  let dmContacts = new Map(); // peerId -> {id, name}
-  /** unread private counts by peerId; public team uses key "__team__" */
+  let dmPeer = null;
+  let dmContacts = new Map();
   let unreadMap = {};
 
   function configured() {
@@ -3904,9 +3780,6 @@
     if (n > 0 && !panelOpen) {
       badge.textContent = n > 99 ? '99+' : String(n);
       badge.dataset.show = 'true';
-    } else if (n > 0 && panelOpen) {
-      // panel open: still show on FAB when closed only
-      badge.dataset.show = 'false';
     } else {
       badge.dataset.show = 'false';
     }
@@ -3921,8 +3794,6 @@
 
   function renderDmTabs() {
     if (!tabsEl) return;
-    const show = !!(session && (dmContacts.size > 0 || true));
-    // always show tabs when logged in (Equipe + DMs)
     if (!session || msgsWrap.hidden) {
       tabsEl.dataset.show = 'false';
       tabsEl.innerHTML = '';
@@ -3968,7 +3839,6 @@
     fab.dataset.open = 'true';
     unlockAudio();
     ensureNotificationPermission();
-    // clear unread only for the active conversation
     if (dmPeer) clearUnread(dmPeer.id);
     else clearUnread('__team__');
     updateUnread();
@@ -3999,7 +3869,6 @@
     if (!dmPeer) {
       return !row.recipient_id;
     }
-    // DM: only messages between me and peer
     const a = row.user_id;
     const b = row.recipient_id;
     return (
@@ -4011,8 +3880,8 @@
   function rowIsUnreadForMe(row) {
     const uid = session && session.user && session.user.id;
     if (!row || !uid || row.user_id === uid) return false;
-    if (!row.recipient_id) return true; // public from others
-    return row.recipient_id === uid; // private to me
+    if (!row.recipient_id) return true;
+    return row.recipient_id === uid;
   }
 
   function updateHeaderForMode() {
@@ -4055,7 +3924,7 @@
     const uid = session && session.user && session.user.id;
     if (!row || !uid || row.user_id === uid) return null;
     if (!row.recipient_id) return '__team__';
-    if (row.recipient_id === uid) return row.user_id; // private to me from peer
+    if (row.recipient_id === uid) return row.user_id;
     return null;
   }
 
@@ -4063,9 +3932,7 @@
     if (!row || !row.id || knownIds.has(row.id)) return;
     opts = opts || {};
 
-    // Always register DM contacts from private traffic
     const uid = session && session.user && session.user.id;
-    // Som + notificação só em mensagens AO VIVO (não no histórico)
     if (!mine && opts.notify) alertIncomingMessage(row);
     if (row.recipient_id && uid) {
       if (row.user_id === uid) registerContact(row.recipient_id, null);
@@ -4102,7 +3969,6 @@
       '<div class="rf-chat-msg-text">' + esc(row.body) + '</div>';
     msgsEl.appendChild(el);
 
-    // Message is for current view: show it. Only notify when explicitly live + not focused on this chat.
     if (!mine && opts.notify && rowIsUnreadForMe(row)) {
       const key = unreadKeyForRow(row);
       const viewingThis =
@@ -4127,18 +3993,13 @@
 
     if (error) {
       const msg = String(error.message || '');
-      if (msg.toLowerCase().includes('recipient_id')) {
-        msgsEl.innerHTML = '<div class="rf-chat-empty">Para ativar chat privado, rode no SQL Editor do Supabase o script de <strong>recipient_id</strong>.<br><small>' + esc(msg) + '</small></div>';
-      } else {
-        msgsEl.innerHTML = '<div class="rf-chat-empty">Não foi possível carregar as mensagens.<br><small>' + esc(msg) + '</small></div>';
-      }
+      msgsEl.innerHTML = '<div class="rf-chat-empty">Não foi possível carregar as mensagens.<br><small>' + esc(msg) + '</small></div>';
       setOnline(false);
       return;
     }
 
     const uid = session.user.id;
     let rows = Array.isArray(data) ? data.slice() : [];
-    // Filtra no client (mais confiável que filtros compostos no PostgREST)
     if (dmPeer) {
       const pid = dmPeer.id;
       rows = rows.filter((r) =>
@@ -4151,11 +4012,11 @@
 
     if (!rows.length) {
       msgsEl.innerHTML = dmPeer
-        ? '<div class="rf-chat-empty">Nenhuma mensagem privada ainda com <strong>' + esc(dmPeer.name) + '</strong>.<br>Envie a primeira.</div>'
-        : '<div class="rf-chat-empty">Nenhuma mensagem ainda.<br>Seja o primeiro a escrever para a equipe.<br><small>Clique no nome de alguém para abrir chat privado.</small></div>';
+        ? '<div class="rf-chat-empty">Nenhuma mensagem privada com <strong>' + esc(dmPeer.name) + '</strong>.</div>'
+        : '<div class="rf-chat-empty">Nenhuma mensagem ainda.<br>Seja o primeiro a escrever para a equipe.</div>';
       return;
     }
-    // Discover DM contacts from full payload before filtering display
+
     const all = Array.isArray(data) ? data : [];
     all.forEach((r) => {
       if (!r || !r.recipient_id) return;
@@ -4223,7 +4084,6 @@
     showView('auth');
   }
 
-  /** Converte nome de usuário em e-mail sintético (exigência do Supabase Auth). */
   function usernameToEmail(name) {
     const raw = String(name || '').trim();
     if (!raw) return null;
@@ -4241,7 +4101,7 @@
     const n = String(name || '').trim();
     if (!n || n.length < 2) return 'Informe um nome de usuário (mín. 2 caracteres).';
     if (n.length > 40) return 'Nome muito longo (máx. 40).';
-    if (!usernameToEmail(n)) return 'Use letras ou números no nome (ex.: rodrigo, ana2).';
+    if (!usernameToEmail(n)) return 'Use letras ou números no nome.';
     return null;
   }
 
@@ -4265,7 +4125,7 @@
           await enterChat(data.session);
           setAuthMessage('');
         } else {
-          setAuthMessage('Conta criada. Se ainda pedir confirmação, desative "Confirm email" no Supabase (Sign In / Providers → Email).', 'ok');
+          setAuthMessage('Conta criada com sucesso.', 'ok');
         }
       } else {
         const { data, error } = await client.auth.signInWithPassword({ email, password });
@@ -4275,12 +4135,6 @@
       }
     } catch (e) {
       let msg = (e && e.message) ? e.message : 'Falha na autenticação.';
-      if (/invalid login credentials/i.test(msg)) {
-        msg = 'Nome ou senha incorretos. Se for a primeira vez, use "Criar conta".';
-      }
-      if (/already registered|already been registered/i.test(msg)) {
-        msg = 'Esse nome já está em uso. Escolha outro ou clique em Entrar.';
-      }
       setAuthMessage(msg, 'error');
     }
   }
@@ -4310,13 +4164,11 @@
     }
     input.value = '';
     input.focus();
-    // Mostra na hora (não depende só do realtime)
     if (data) appendMessage(data, true);
     else await loadHistory();
   }
 
   function initUi() {
-    // Desbloqueia áudio após qualquer interação (política do navegador)
     const unlockOnce = () => { unlockAudio(); ensureNotificationPermission(); };
     document.addEventListener('click', unlockOnce, { once: true, passive: true });
     document.addEventListener('keydown', unlockOnce, { once: true, passive: true });
@@ -4392,12 +4244,436 @@
 })();
 </script>
 
+<!-- SCRIPT 5: SALDO DEVEDOR POR CCB (PARSER INTELIGENTE + DESIGN SAAS) -->
 <script>
-  // Initialize Lucide icons after DOM is ready
-  if (window.lucide) {
-    lucide.createIcons();
+(() => {
+  'use strict';
+  const LS_KEY = 'rf_saldo_devedor_v3';
+  const $ = id => document.getElementById(id);
+  const brl = n => (Number(n) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  let processedRows = [];
+
+  function notify(msg, type = 'success') {
+    const node = $('toast');
+    if (!node) return;
+    node.textContent = msg;
+    node.style.background = type === 'error' ? 'var(--red)' : type === 'warn' ? 'var(--amber)' : 'var(--toast-bg)';
+    node.style.color = type === 'error' ? '#fff' : 'var(--toast-color)';
+    node.style.display = 'block';
+    setTimeout(() => node.style.display = 'none', 3000);
   }
+
+  function parseMoney(raw) {
+    if (raw == null) return null;
+    if (typeof raw === 'number') return isNaN(raw) ? null : raw;
+    let s = String(raw).trim();
+    if (!s) return null;
+
+    const isNeg = s.includes('-') || /^\(.*\)$/.test(s);
+    s = s.replace(/r\$/ig, '').replace(/[^\d,.-]/g, '');
+    if (!/\d/.test(s)) return null;
+
+    const lastComma = s.lastIndexOf(',');
+    const lastDot = s.lastIndexOf('.');
+
+    if (lastComma > -1 && lastDot > -1) {
+      s = lastComma > lastDot ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '');
+    } else if (lastComma > -1) {
+      s = s.replace(/\./g, '').replace(',', '.');
+    } else if (lastDot > -1) {
+      const parts = s.split('.');
+      if (parts.length === 2 && parts[1].length === 3 && parts[0].length <= 3) {
+        s = s.replace(/\./g, '');
+      }
+    }
+
+    s = s.replace(/[^\d.-]/g, '');
+    const n = parseFloat(s);
+    if (isNaN(n)) return null;
+    return isNeg ? -Math.abs(n) : Math.abs(n);
+  }
+
+  function parseCreditos(text) {
+    if (!text || !text.trim()) return [];
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+    const records = [];
+
+    const isTabular = lines.some(l => l.includes('\t') || (l.includes(';') && l.split(';').length >= 3));
+
+    if (isTabular) {
+      for (const line of lines) {
+        const parts = line.split(/\t|;|  +/).map(p => p.trim());
+        if (parts.length < 3) continue;
+        if (/data|ccb|produto|status/i.test(parts[0]) && /data|ccb|produto/i.test(parts[1])) continue;
+
+        let date = '', ccb = '', status = '', valor = null, valorPagar = null;
+
+        parts.forEach(p => {
+          if (/^\d{2}\/\d{2}\/\d{4}$/.test(p)) date = p;
+          else if (/^\d{5,12}$/.test(p)) ccb = p;
+          else if (/em aberto|pago|inadimplente|cancelado/i.test(p)) status = p;
+          else {
+            const m = parseMoney(p);
+            if (m !== null) {
+              if (valor === null) valor = m;
+              else if (valorPagar === null) valorPagar = m;
+            }
+          }
+        });
+
+        if (ccb) {
+          records.push({
+            date: date || '—',
+            ccb,
+            status: status || 'Em Aberto',
+            valor: valor || 0,
+            valorPagar: valorPagar !== null ? valorPagar : (valor || 0)
+          });
+        }
+      }
+    }
+
+    if (records.length === 0) {
+      let i = 0;
+      while (i < lines.length) {
+        const line = lines[i];
+
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(line)) {
+          const date = line;
+          let ccb = '', status = 'Em Aberto', valor = null, valorPagar = null;
+
+          let j = 1;
+          while (j <= 7 && (i + j) < lines.length) {
+            const nextLine = lines[i + j];
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(nextLine)) break;
+
+            if (!ccb && /^\d{5,12}$/.test(nextLine)) {
+              ccb = nextLine;
+            } else if (/^(em aberto|pago|inadimplente|cancelado)$/i.test(nextLine)) {
+              status = nextLine;
+            } else {
+              const m = parseMoney(nextLine);
+              if (m !== null && !/^\d{5,12}$/.test(nextLine)) {
+                if (valor === null) valor = m;
+                else if (valorPagar === null) valorPagar = m;
+              }
+            }
+            j++;
+          }
+
+          if (ccb) {
+            records.push({
+              date,
+              ccb,
+              status,
+              valor: valor || 0,
+              valorPagar: valorPagar !== null ? valorPagar : (valor || 0)
+            });
+            i += (j - 1);
+          }
+        }
+        i++;
+      }
+    }
+
+    return records;
+  }
+
+  function parseExtrato(text) {
+    if (!text || !text.trim()) return [];
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+    const payments = [];
+
+    for (const line of lines) {
+      if (/saldo do dia/i.test(line)) continue;
+
+      const ccbMatch = line.match(/ccb\s*[:.-]?\s*(\d{4,12})/i);
+      if (ccbMatch) {
+        const ccb = ccbMatch[1];
+        let value = 0;
+
+        const parts = line.split(/\t|;|  +/).map(p => p.trim());
+        for (let i = parts.length - 1; i >= 0; i--) {
+          const p = parts[i];
+          if (p.includes(ccb)) continue;
+          const m = parseMoney(p);
+          if (m !== null && m !== 0 && !/^\d{1,2}:\d{2}$/.test(p)) {
+            value = Math.abs(m);
+            break;
+          }
+        }
+
+        if (value === 0) {
+          const moneyMatches = line.match(/[-+]?\s*[\d.]+(?:,\d{2})/g);
+          if (moneyMatches) {
+            for (let i = moneyMatches.length - 1; i >= 0; i--) {
+              const rawM = moneyMatches[i];
+              if (rawM.replace(/\D/g, '') === ccb) continue;
+              const m = parseMoney(rawM);
+              if (m !== null && m !== 0) {
+                value = Math.abs(m);
+                break;
+              }
+            }
+          }
+        }
+
+        payments.push({ ccb, value, rawLine: line });
+      }
+    }
+
+    return payments;
+  }
+
+  function parseDescontos(text) {
+    if (!text || !text.trim()) return [];
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+    const discounts = [];
+
+    for (const line of lines) {
+      const ccbMatch = line.match(/(?:ccb\s*[:.-]?\s*|^|\b)(\d{5,12})\b/i);
+      if (ccbMatch) {
+        const ccb = ccbMatch[1];
+        let value = 0;
+        const parts = line.split(/\t|;|  +/).map(p => p.trim());
+        for (let i = parts.length - 1; i >= 0; i--) {
+          if (parts[i].includes(ccb)) continue;
+          const m = parseMoney(parts[i]);
+          if (m !== null && m > 0) { value = m; break; }
+        }
+        if (value > 0) discounts.push({ ccb, value });
+      }
+    }
+    return discounts;
+  }
+
+  function processar() {
+    const rawCred = $('sd-creditos').value;
+    const rawPag = $('sd-pagamentos').value;
+    const rawDesc = $('sd-descontos').value;
+    const onlyOpen = $('sd-only-open') ? $('sd-only-open').checked : true;
+    const searchQuery = $('sd-search') ? $('sd-search').value.trim().toLowerCase() : '';
+
+    const creditos = parseCreditos(rawCred);
+    const pagamentos = parseExtrato(rawPag);
+    const descontos = parseDescontos(rawDesc);
+
+    const detCred = $('sd-detect-creditos');
+    const detPag = $('sd-detect-pagamentos');
+    const detDesc = $('sd-detect-descontos');
+
+    if (detCred) {
+      detCred.className = 'sd-detect ' + (creditos.length ? 'ok' : 'err');
+      detCred.innerHTML = creditos.length ? `<i data-lucide="check-circle"></i> ${creditos.length} contrato(s) identificado(s)` : (rawCred.trim() ? '<i data-lucide="alert-circle"></i> Nenhum contrato reconhecido' : '');
+    }
+    if (detPag) {
+      detPag.className = 'sd-detect ' + (pagamentos.length ? 'ok' : 'warn');
+      detPag.innerHTML = pagamentos.length ? `<i data-lucide="check-circle"></i> ${pagamentos.length} pagamento(s) de CCB localizado(s)` : (rawPag.trim() ? '<i data-lucide="alert-triangle"></i> Nenhum pagamento com CCB localizado' : '');
+    }
+    if (detDesc) {
+      detDesc.className = 'sd-detect ' + (descontos.length ? 'ok' : '');
+      detDesc.innerHTML = descontos.length ? `<i data-lucide="check-circle"></i> ${descontos.length} desconto(s) localizado(s)` : '';
+    }
+
+    if (!creditos.length) {
+      $('sd-kpis').hidden = true;
+      $('sd-table-wrap').hidden = true;
+      $('sd-empty').hidden = false;
+      $('sd-alertas').innerHTML = '';
+      processedRows = [];
+      if (window.lucide) lucide.createIcons();
+      return;
+    }
+
+    const pagoByCcb = new Map();
+    pagamentos.forEach(p => {
+      pagoByCcb.set(p.ccb, (pagoByCcb.get(p.ccb) || 0) + p.value);
+    });
+
+    const descByCcb = new Map();
+    descontos.forEach(d => {
+      descByCcb.set(d.ccb, (descByCcb.get(d.ccb) || 0) + d.value);
+    });
+
+    let rows = creditos.map(c => {
+      const pago = pagoByCcb.get(c.ccb) || 0;
+      const desconto = descByCcb.get(c.ccb) || 0;
+      const liquido = c.valorPagar - desconto;
+      const saldo = Math.max(0, liquido - pago);
+
+      let status = 'aberto', statusTxt = 'Em aberto';
+      const isPagoMentore = /pago/i.test(c.status);
+
+      if (isPagoMentore || saldo <= 0.01) {
+        status = 'quitado';
+        statusTxt = 'Quitado';
+      } else if (pago > 0 || desconto > 0) {
+        status = 'parcial';
+        statusTxt = 'Parcial';
+      }
+
+      return {
+        date: c.date,
+        ccb: c.ccb,
+        statusMentore: c.status,
+        valorPagar: c.valorPagar,
+        desconto,
+        pago,
+        saldo,
+        status,
+        statusTxt
+      };
+    });
+
+    processedRows = rows;
+
+    let displayRows = rows;
+    if (onlyOpen) {
+      displayRows = displayRows.filter(r => r.status !== 'quitado' && !/pago/i.test(r.statusMentore));
+    }
+    if (searchQuery) {
+      displayRows = displayRows.filter(r => r.ccb.toLowerCase().includes(searchQuery) || r.statusTxt.toLowerCase().includes(searchQuery));
+    }
+
+    render(displayRows, rows);
+    save();
+  }
+
+  function render(displayRows, allRows) {
+    const openRows = allRows.filter(r => r.status !== 'quitado' && !/pago/i.test(r.statusMentore));
+    const tot = openRows.reduce((a, r) => ({
+      pagar: a.pagar + r.valorPagar,
+      desconto: a.desconto + r.desconto,
+      pago: a.pago + r.pago,
+      saldo: a.saldo + r.saldo
+    }), { pagar: 0, desconto: 0, pago: 0, saldo: 0 });
+
+    $('sd-kpi-saldo').textContent = brl(tot.saldo);
+    $('sd-kpi-pagar').textContent = brl(tot.pagar);
+    $('sd-kpi-desc').textContent = brl(tot.desconto);
+    $('sd-kpi-pago').textContent = brl(tot.pago);
+    $('sd-kpi-qtd').textContent = String(openRows.length);
+
+    $('sd-kpis').hidden = false;
+    $('sd-table-wrap').hidden = displayRows.length === 0;
+    $('sd-empty').hidden = displayRows.length > 0;
+
+    const tb = $('sd-tbody');
+    tb.innerHTML = '';
+
+    displayRows.forEach(r => {
+      const tr = document.createElement('tr');
+      const td = (txt, cls) => { const d = document.createElement('td'); if (cls) d.className = cls; d.textContent = txt; return d; };
+
+      const ccbTd = td('');
+      ccbTd.innerHTML = `<span class="sd-ccb" title="Clique para copiar CCB">${r.ccb} <i data-lucide="copy" style="width:12px;height:12px"></i></span>`;
+      ccbTd.onclick = () => {
+        try {
+          navigator.clipboard.writeText(r.ccb);
+          notify('CCB ' + r.ccb + ' copiado!');
+        } catch (e) {}
+      };
+
+      tr.appendChild(td(r.date));
+      tr.appendChild(ccbTd);
+      tr.appendChild(td(brl(r.valorPagar), 'num'));
+      tr.appendChild(td(r.desconto ? '-' + brl(r.desconto) : '—', 'num'));
+      tr.appendChild(td(r.pago ? brl(r.pago) : '—', 'num'));
+      tr.appendChild(td(brl(r.saldo), 'num'));
+
+      const st = document.createElement('td');
+      const sp = document.createElement('span');
+      sp.className = 'sd-status ' + r.status;
+      sp.textContent = r.statusTxt;
+      st.appendChild(sp);
+      tr.appendChild(st);
+
+      tb.appendChild(tr);
+    });
+
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
+  }
+
+  function exportCsv() {
+    if (!processedRows.length) {
+      alert('Nenhum dado para exportar. Processe as informações primeiro.');
+      return;
+    }
+    const dec = n => (Number(n) || 0).toFixed(2).replace('.', ',');
+    const head = ['Data', 'CCB', 'Valor a Pagar', 'Desconto', 'Ja Pago (Extrato)', 'Saldo Devedor', 'Status'];
+    const lines = [head.join(';')];
+
+    processedRows.forEach(r => {
+      lines.push([r.date, r.ccb, dec(r.valorPagar), dec(r.desconto), dec(r.pago), dec(r.saldo), r.statusTxt].join(';'));
+    });
+
+    const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'saldo_devedor_mentore_' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    notify('Relatório CSV baixado!');
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        creditos: $('sd-creditos').value,
+        pagamentos: $('sd-pagamentos').value,
+        descontos: $('sd-descontos').value
+      }));
+    } catch (e) {}
+  }
+
+  function load() {
+    try {
+      const o = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
+      if (!o) return;
+      if ($('sd-creditos')) $('sd-creditos').value = o.creditos || '';
+      if ($('sd-pagamentos')) $('sd-pagamentos').value = o.pagamentos || '';
+      if ($('sd-descontos')) $('sd-descontos').value = o.descontos || '';
+    } catch (e) {}
+  }
+
+  function init() {
+    if (!$('sd-processar')) return;
+
+    $('sd-processar').onclick = () => { processar(); notify('Relatório processado!'); };
+    $('sd-exportar').onclick = exportCsv;
+    $('sd-limpar').onclick = () => {
+      if (!confirm('Deseja limpar todos os campos colados e o resultado?')) return;
+      $('sd-creditos').value = '';
+      $('sd-pagamentos').value = '';
+      $('sd-descontos').value = '';
+      processar();
+      notify('Campos limpos!', 'warn');
+    };
+
+    if ($('sd-only-open')) $('sd-only-open').onchange = processar;
+    if ($('sd-search')) $('sd-search').oninput = processar;
+
+    ['creditos', 'pagamentos', 'descontos'].forEach(k => {
+      const ta = $('sd-' + k);
+      if (!ta) return;
+      ta.addEventListener('paste', () => setTimeout(processar, 50));
+      ta.addEventListener('input', () => {
+        clearTimeout(ta._t);
+        ta._t = setTimeout(processar, 300);
+      });
+    });
+
+    load();
+    if ($('sd-creditos').value.trim()) processar();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
 </script>
 
 </body>
 </html>
+```
