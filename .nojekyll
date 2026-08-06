@@ -1,0 +1,4 @@
+type nul > .nojekyll
+git add .nojekyll
+git commit -m "fix: adiciona nojekyll"
+git push origin main
