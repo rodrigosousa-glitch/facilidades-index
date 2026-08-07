@@ -4060,31 +4060,38 @@ function render() {
       const ccbMatch = line.match(/ccb\s*[:.-]?\s*(\d{4,12})/i);
       if (ccbMatch) {
         const ccb = ccbMatch[1];
-        let value = 0;
 
-        // Procura valor na mesma linha
-        const parts = line.split(/\t|;|  +/).map(p => p.trim());
-        for (let k = parts.length - 1; k >= 0; k--) {
-          const p = parts[k];
-          if (p.includes(ccb)) continue;
-          const m = parseMoney(p);
-          if (m !== null && m !== 0 && !/^\d{1,2}:\d{2}$/.test(p)) {
-            value = Math.abs(m);
-            break;
-          }
+        // Monta o bloco da transação (linha da CCB + até 3 linhas vizinhas)
+        const blockLines = [];
+        if (i > 0 && !lines[i - 1].match(/ccb\s*[:.-]?\s*(\d{4,12})/i)) blockLines.push(lines[i - 1]);
+        blockLines.push(line);
+        for (let next = 1; next <= 3 && (i + next) < lines.length; next++) {
+          const nextLine = lines[i + next];
+          if (nextLine.match(/ccb\s*[:.-]?\s*(\d{4,12})/i) || /saldo do dia/i.test(nextLine)) break;
+          blockLines.push(nextLine);
         }
 
-        // Se não encontrou valor na mesma linha, verifica as 2 linhas seguintes
-        if (value === 0) {
-          for (let next = 1; next <= 2 && (i + next) < lines.length; next++) {
-            const nextLine = lines[i + next];
-            if (nextLine.match(/ccb\s*[:.-]?\s*(\d{4,12})/i)) break;
-            const m = parseMoney(nextLine);
-            if (m !== null && m !== 0 && !/^\d{1,2}:\d{2}$/.test(nextLine)) {
+        const blockText = blockLines.join(' ');
+
+        // Se o bloco contiver 'Falhou', 'Cancelado', 'Estornado', etc., IGNORA o pagamento!
+        if (/Falhou|cancelad|estornad|recusad|nao confirmado|não confirmado|erro/i.test(blockText)) {
+          continue;
+        }
+
+        // Se a transação foi confirmada, busca o valor pago dentro do bloco
+        let value = 0;
+        for (const bline of blockLines) {
+          const parts = bline.split(/\t|;|  +/).map(p => p.trim());
+          for (let k = parts.length - 1; k >= 0; k--) {
+            const p = parts[k];
+            if (p.includes(ccb)) continue;
+            const m = parseMoney(p);
+            if (m !== null && m !== 0 && !/^\d{1,2}:\d{2}$/.test(p)) {
               value = Math.abs(m);
               break;
             }
           }
+          if (value > 0) break;
         }
 
         if (value > 0) {
@@ -4138,8 +4145,22 @@ function render() {
       detCred.innerHTML = creditos.length ? `<i data-lucide="check-circle"></i> ${creditos.length} contrato(s) identificado(s)` : (rawCred.trim() ? '<i data-lucide="alert-circle"></i> Nenhum contrato reconhecido' : '');
     }
     if (detPag) {
-      detPag.className = 'sd-detect ' + (pagamentos.length ? 'ok' : 'warn');
-      detPag.innerHTML = pagamentos.length ? `<i data-lucide="check-circle"></i> ${pagamentos.length} pagamento(s) de CCB localizado(s)` : (rawPag.trim() ? '<i data-lucide="alert-triangle"></i> Nenhum pagamento com CCB localizado' : '');
+      const ccbMatches = rawPag.match(/ccb\s*[:.-]?\s*\d+/gi) || [];
+      const hasFailed = /falhou|cancelad|estornad|recusad|nao confirmado|não confirmado|erro/i.test(rawPag);
+
+      if (pagamentos.length > 0) {
+        detPag.className = 'sd-detect ok';
+        detPag.innerHTML = `<i data-lucide="check-circle"></i> ${pagamentos.length} pagamento(s) de CCB confirmado(s)`;
+      } else if (ccbMatches.length > 0 && hasFailed) {
+        detPag.className = 'sd-detect warn';
+        detPag.innerHTML = `<i data-lucide="alert-triangle"></i> CCB localizada, porém o pagamento falhou ou foi cancelado`;
+      } else if (rawPag.trim()) {
+        detPag.className = 'sd-detect warn';
+        detPag.innerHTML = `<i data-lucide="alert-triangle"></i> Nenhum pagamento de CCB encontrado no extrato`;
+      } else {
+        detPag.className = 'sd-detect';
+        detPag.innerHTML = '';
+      }
     }
     if (detDesc) {
       detDesc.className = 'sd-detect ' + (descontos.length ? 'ok' : '');
