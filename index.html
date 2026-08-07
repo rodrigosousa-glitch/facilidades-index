@@ -525,6 +525,11 @@
 
     input::placeholder, textarea::placeholder { color: var(--muted-dim); }
 
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.85);
+  cursor: pointer;
+}
+
     input:focus, select:focus, textarea:focus {
       border-color: var(--focus-border);
       box-shadow: var(--focus-ring);
@@ -1860,8 +1865,8 @@
         <p>2. No Blip Desk, abra um atendimento e clique no favorito. Após alterar o assistente no painel, arraste o botão de novo para atualizar.</p>
       </div>
       <div class="sync-zone-actions">
-        <a id="bookmarklet" class="btn bookmarklet" href="#" title="Bookmarklet: código completo embutido no favorito"><i data-lucide="bookmark"></i> Assistente</a>
-        <button id="sync" class="btn sync-btn"><i data-lucide="clipboard-copy"></i> Copiar macros para o Assistente</button>
+        <a id="bookmarklet" class="btn bookmarklet" href="#" title="Bookmarklet: código completo embutido no favorito"><i data-lucide="bookmark"></i> 👽 Assistente</a>
+        <button id="sync" class="btn sync-btn"><i data-lucide="clipboard-copy"></i> Copiar macros para o Blip</button>
       </div>
       <p id="sync-status" class="sync-status" role="status" aria-live="polite" data-state="pending">Altere ou cadastre suas macros e clique em copiar para atualizar o Blip.</p>
     </div>
@@ -3431,7 +3436,30 @@ function render() {
     const today = localDate();
     const open = openPunch(today);
     const todayMins = workedMinutes(today, true);
-    const weekMins = weekDates().reduce((s, d) => s + workedMinutes(d, d === today), 0);
+    
+    // Soma batidas da semana atual + TODOS os ajustes manuais cadastrados (qualquer data)
+    const currentWeekPunchMins = weekDates().reduce((s, d) => {
+      let mins = 0, op = null;
+      for (const r of punchRecords(d)) {
+        if (r.kind === 'entry') op = r;
+        else if (op) {
+          const diff = Math.round((new Date(r.at) - new Date(op.at)) / 60000);
+          if (diff > 0) mins += diff;
+          op = null;
+        }
+      }
+      if (d === today && op) {
+        const diff = Math.round((Date.now() - new Date(op.at)) / 60000);
+        if (diff > 0) mins += diff;
+      }
+      return s + mins;
+    }, 0);
+
+    const allAdjustments = data.records
+      .filter(r => r.type === 'adjustment')
+      .reduce((s, r) => s + r.minutes, 0);
+
+    const weekMins = currentWeekPunchMins + allAdjustments;
     const balance = weekMins - WEEKLY_GOAL_MINUTES;
     const progress = Math.max(0, Math.min(100, (weekMins / WEEKLY_GOAL_MINUTES) * 100));
 
@@ -3474,13 +3502,16 @@ function render() {
   }
 
   function renderRecords() {
-    const dates = new Set(weekDates());
-    const records = data.records.filter(r => dates.has(r.type === 'punch' ? localDate(r.at) : r.date))
-                                .sort((a,b) => (b.type === 'punch' ? new Date(b.at).getTime() : new Date(b.date+'T12:00:00').getTime()) - (a.type === 'punch' ? new Date(a.at).getTime() : new Date(a.date+'T12:00:00').getTime()));
+    // Exibe todos os registros ordenados do mais recente para o mais antigo
+    const records = data.records.slice().sort((a,b) => {
+      const timeA = a.type === 'punch' ? new Date(a.at).getTime() : new Date(a.date+'T12:00:00').getTime();
+      const timeB = b.type === 'punch' ? new Date(b.at).getTime() : new Date(b.date+'T12:00:00').getTime();
+      return timeB - timeA;
+    });
 
-    el.records.innerHTML = '<p class="ponto-records-title">Movimentações desta semana</p>';
+    el.records.innerHTML = '<p class="ponto-records-title">Histórico de movimentações</p>';
     if (!records.length) {
-      el.records.innerHTML += '<p style="color:var(--muted);font-size:11px;padding:6px 0;">Nenhum registro nesta semana.</p>';
+      el.records.innerHTML += '<p style="color:var(--muted);font-size:11px;padding:6px 0;">Nenhum registro encontrado.</p>';
       return;
     }
 
