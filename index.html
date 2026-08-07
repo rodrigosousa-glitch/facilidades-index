@@ -2845,10 +2845,10 @@
     $('editor-title').textContent = 'Nova macro';
   }
 
-  function render() {
+function render() {
     const query = $('search-macro').value.trim().toLocaleLowerCase('pt-BR');
     const root = $('macro-library');
-    const list = macros.filter(x => !query || x.shortcut.toLocaleLowerCase('pt-BR').includes(query) || x.content.toLocaleLowerCase('pt-BR').includes(query));
+    const list = macros.filter(x => !query || x.shortcut.toLocaleLowerCase('pt-BR').includes(query));
     
     $('macro-count').textContent = `${list.length} de ${macros.length} macro(s) disponível(is)`;
     
@@ -4491,4 +4491,546 @@
   let client = null;
   let session = null;
   let channel = null;
-  let known
+  let knownIds = new Set();
+  let unread = 0;
+  let panelOpen = false;
+  let dmPeer = null;
+  let dmContacts = new Map();
+  let unreadMap = {};
+
+  function configured() {
+    return !!(RF_CHAT_CONFIG.enabled && RF_CHAT_CONFIG.supabaseUrl && RF_CHAT_CONFIG.supabaseAnonKey);
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  function setAuthMessage(text, type) {
+    authMsg.textContent = text || '';
+    authMsg.dataset.type = type || '';
+  }
+
+  function formatTime(iso) {
+    try {
+      return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function setOnline(on) {
+    dot.dataset.online = on ? 'true' : 'false';
+  }
+
+  function readUnreadStore() {
+    try {
+      const v = JSON.parse(localStorage.getItem(UNREAD_KEY) || '{}');
+      return (v && typeof v === 'object') ? v : {};
+    } catch (e) { return {}; }
+  }
+  function writeUnreadStore() {
+    try { localStorage.setItem(UNREAD_KEY, JSON.stringify(unreadMap)); } catch (e) {}
+  }
+  function totalUnread() {
+    let n = 0;
+    Object.keys(unreadMap).forEach((k) => { n += Number(unreadMap[k]) || 0; });
+    return n;
+  }
+  function bumpUnread(key, by) {
+    if (!key) return;
+    unreadMap[key] = (Number(unreadMap[key]) || 0) + (by || 1);
+    writeUnreadStore();
+    updateUnread();
+    renderDmTabs();
+  }
+  function clearUnread(key) {
+    if (!key) return;
+    if (unreadMap[key]) {
+      delete unreadMap[key];
+      writeUnreadStore();
+    }
+    updateUnread();
+    renderDmTabs();
+  }
+  function updateUnread() {
+    const n = totalUnread();
+    unread = n;
+    if (n > 0 && !panelOpen) {
+      badge.textContent = n > 99 ? '99+' : String(n);
+      badge.dataset.show = 'true';
+    } else {
+      badge.dataset.show = 'false';
+    }
+  }
+
+  function registerContact(id, name) {
+    if (!id) return;
+    const prev = dmContacts.get(id);
+    const label = (name && String(name).trim()) || (prev && prev.name) || 'Colega';
+    dmContacts.set(id, { id: id, name: label.slice(0, 40) });
+  }
+
+  function renderDmTabs() {
+    if (!tabsEl) return;
+    if (!session || msgsWrap.hidden) {
+      tabsEl.dataset.show = 'false';
+      tabsEl.innerHTML = '';
+      return;
+    }
+    tabsEl.dataset.show = 'true';
+    const teamUnread = Number(unreadMap['__team__']) || 0;
+    let html = '';
+    html += '<button type="button" class="rf-chat-tab" data-tab="team" data-active="' + (!dmPeer ? 'true' : 'false') + '" role="tab">' +
+      '<span class="rf-chat-tab-label">Equipe</span>' +
+      '<span class="rf-chat-tab-badge" data-show="' + (teamUnread > 0 && !!dmPeer ? 'true' : 'false') + '">' + (teamUnread > 99 ? '99+' : teamUnread) + '</span>' +
+      '</button>';
+    const list = Array.from(dmContacts.values()).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+    list.forEach((c) => {
+      const u = Number(unreadMap[c.id]) || 0;
+      const active = dmPeer && dmPeer.id === c.id;
+      html += '<button type="button" class="rf-chat-tab" data-tab="dm" data-peer-id="' + esc(c.id) + '" data-peer-name="' + esc(c.name) + '" data-active="' + (active ? 'true' : 'false') + '" role="tab">' +
+        '<span class="rf-chat-tab-label">' + esc(c.name) + '</span>' +
+        '<span class="rf-chat-tab-badge" data-show="' + (u > 0 && !active ? 'true' : 'false') + '">' + (u > 99 ? '99+' : u) + '</span>' +
+        '</button>';
+    });
+    tabsEl.innerHTML = html;
+  }
+
+  function showView(name) {
+    setupEl.hidden = name !== 'setup';
+    authEl.hidden = name !== 'auth';
+    msgsWrap.hidden = name !== 'chat';
+    compose.dataset.show = name === 'chat' ? 'true' : 'false';
+    userbar.dataset.show = name === 'chat' ? 'true' : 'false';
+    logoutBtn.hidden = name !== 'chat';
+    input.disabled = name !== 'chat';
+    sendBtn.disabled = name !== 'chat';
+    if (tabsEl && name !== 'chat') {
+      tabsEl.dataset.show = 'false';
+      tabsEl.innerHTML = '';
+    }
+  }
+
+  function openPanel() {
+    panelOpen = true;
+    panel.dataset.open = 'true';
+    fab.dataset.open = 'true';
+    unlockAudio();
+    ensureNotificationPermission();
+    if (dmPeer) clearUnread(dmPeer.id);
+    else clearUnread('__team__');
+    updateUnread();
+    renderDmTabs();
+    if (window.lucide) lucide.createIcons();
+    if (!msgsWrap.hidden) scrollBottom();
+  }
+
+  function closePanel() {
+    panelOpen = false;
+    panel.dataset.open = 'false';
+    fab.dataset.open = 'false';
+  }
+
+  function scrollBottom() {
+    requestAnimationFrame(() => {
+      msgsWrap.scrollTop = msgsWrap.scrollHeight;
+    });
+  }
+
+  function isPrivateRow(row) {
+    return !!(row && row.recipient_id);
+  }
+
+  function rowBelongsToCurrentView(row) {
+    if (!row) return false;
+    const uid = session && session.user && session.user.id;
+    if (!dmPeer) {
+      return !row.recipient_id;
+    }
+    const a = row.user_id;
+    const b = row.recipient_id;
+    return (
+      (a === uid && b === dmPeer.id) ||
+      (a === dmPeer.id && b === uid)
+    );
+  }
+
+  function rowIsUnreadForMe(row) {
+    const uid = session && session.user && session.user.id;
+    if (!row || !uid || row.user_id === uid) return false;
+    if (!row.recipient_id) return true;
+    return row.recipient_id === uid;
+  }
+
+  function updateHeaderForMode() {
+    if (dmPeer) {
+      if (titleEl) titleEl.textContent = 'Privado · ' + dmPeer.name;
+      subtitle.textContent = 'Só vocês dois';
+      if (modePill) modePill.dataset.show = 'true';
+      if (backBtn) backBtn.hidden = false;
+      if (input) input.placeholder = 'Mensagem privada para ' + dmPeer.name + '…';
+    } else {
+      if (titleEl) titleEl.textContent = 'Chat da equipe';
+      subtitle.textContent = session ? 'Online' : 'Rodrigo Facilidades';
+      if (modePill) modePill.dataset.show = 'false';
+      if (backBtn) backBtn.hidden = true;
+      if (input) input.placeholder = 'Mensagem para a equipe…';
+    }
+    if (window.lucide) lucide.createIcons();
+  }
+
+  async function openPrivateChat(peerId, peerName) {
+    if (!session || !peerId) return;
+    if (session.user.id === peerId) return;
+    registerContact(peerId, peerName || 'Colega');
+    dmPeer = { id: peerId, name: (peerName || 'Colega').slice(0, 40) };
+    clearUnread(peerId);
+    updateHeaderForMode();
+    renderDmTabs();
+    await loadHistory();
+  }
+
+  function backToTeamChat() {
+    dmPeer = null;
+    clearUnread('__team__');
+    updateHeaderForMode();
+    renderDmTabs();
+    loadHistory();
+  }
+
+  function unreadKeyForRow(row) {
+    const uid = session && session.user && session.user.id;
+    if (!row || !uid || row.user_id === uid) return null;
+    if (!row.recipient_id) return '__team__';
+    if (row.recipient_id === uid) return row.user_id;
+    return null;
+  }
+
+  function appendMessage(row, mine, opts) {
+    if (!row || !row.id || knownIds.has(row.id)) return;
+    opts = opts || {};
+
+    const uid = session && session.user && session.user.id;
+    if (!mine && opts.notify) alertIncomingMessage(row);
+    if (row.recipient_id && uid) {
+      if (row.user_id === uid) registerContact(row.recipient_id, null);
+      else if (row.recipient_id === uid) registerContact(row.user_id, row.display_name);
+    }
+
+    if (!rowBelongsToCurrentView(row)) {
+      if (!mine && opts.notify && rowIsUnreadForMe(row)) {
+        const key = unreadKeyForRow(row);
+        const viewingThis =
+          (key === '__team__' && !dmPeer && panelOpen) ||
+          (dmPeer && key === dmPeer.id && panelOpen);
+        if (!viewingThis && key) bumpUnread(key, 1);
+      }
+      renderDmTabs();
+      return;
+    }
+    knownIds.add(row.id);
+    const empty = msgsEl.querySelector('.rf-chat-empty');
+    if (empty) empty.remove();
+
+    const canDm = !mine && row.user_id && session && row.user_id !== session.user.id;
+    const el = document.createElement('div');
+    el.className = 'rf-chat-msg' + (mine ? ' mine' : '');
+    el.dataset.id = row.id;
+    el.innerHTML =
+      '<div class="rf-chat-msg-meta">' +
+        '<span class="rf-chat-msg-author"' +
+          (canDm ? ' data-clickable="true" data-user-id="' + esc(row.user_id) + '" data-user-name="' + esc(row.display_name || 'Colega') + '" title="Abrir chat privado"' : '') +
+        '>' + esc(row.display_name || 'Colega') + '</span>' +
+        (isPrivateRow(row) ? '<span class="rf-chat-msg-time">privado</span>' : '') +
+        '<span class="rf-chat-msg-time">' + esc(formatTime(row.created_at)) + '</span>' +
+      '</div>' +
+      '<div class="rf-chat-msg-text">' + esc(row.body) + '</div>';
+    msgsEl.appendChild(el);
+
+    if (!mine && opts.notify && rowIsUnreadForMe(row)) {
+      const key = unreadKeyForRow(row);
+      const viewingThis =
+        (key === '__team__' && !dmPeer && panelOpen) ||
+        (dmPeer && key === dmPeer.id && panelOpen);
+      if (!viewingThis && key) bumpUnread(key, 1);
+    }
+    scrollBottom();
+    renderDmTabs();
+  }
+
+  async function loadHistory() {
+    msgsEl.innerHTML = '';
+    knownIds.clear();
+    if (!client || !session) return;
+
+    const { data, error } = await client
+      .from('team_messages')
+      .select('id, user_id, recipient_id, display_name, body, created_at')
+      .order('created_at', { ascending: true })
+      .limit(400);
+
+    if (error) {
+      const msg = String(error.message || '');
+      msgsEl.innerHTML = '<div class="rf-chat-empty">Não foi possível carregar as mensagens.<br><small>' + esc(msg) + '</small></div>';
+      setOnline(false);
+      return;
+    }
+
+    const uid = session.user.id;
+    let rows = Array.isArray(data) ? data.slice() : [];
+    if (dmPeer) {
+      const pid = dmPeer.id;
+      rows = rows.filter((r) =>
+        (r.user_id === uid && r.recipient_id === pid) ||
+        (r.user_id === pid && r.recipient_id === uid)
+      );
+    } else {
+      rows = rows.filter((r) => r.recipient_id == null);
+    }
+
+    if (!rows.length) {
+      msgsEl.innerHTML = dmPeer
+        ? '<div class="rf-chat-empty">Nenhuma mensagem privada com <strong>' + esc(dmPeer.name) + '</strong>.</div>'
+        : '<div class="rf-chat-empty">Nenhuma mensagem ainda.<br>Seja o primeiro a escrever para a equipe.</div>';
+      return;
+    }
+
+    const all = Array.isArray(data) ? data : [];
+    all.forEach((r) => {
+      if (!r || !r.recipient_id) return;
+      if (r.user_id === uid) registerContact(r.recipient_id, null);
+      else if (r.recipient_id === uid) registerContact(r.user_id, r.display_name);
+    });
+    rows.forEach((row) => appendMessage(row, row.user_id === uid));
+    renderDmTabs();
+    scrollBottom();
+  }
+
+  function subscribeRealtime() {
+    if (channel) {
+      try { client.removeChannel(channel); } catch (e) {}
+      channel = null;
+    }
+    channel = client
+      .channel('team_messages_rt')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'team_messages'
+      }, (payload) => {
+        const row = payload.new;
+        const uid = session && session.user && session.user.id;
+        appendMessage(row, row && row.user_id === uid, { notify: true });
+      })
+      .subscribe((status) => {
+        setOnline(status === 'SUBSCRIBED');
+      });
+  }
+
+  async function enterChat(sess) {
+    session = sess;
+    const email = (sess.user && sess.user.email) || '';
+    let display = '';
+    try { display = localStorage.getItem(DISPLAY_KEY) || ''; } catch (e) {}
+    if (!display) display = (email.split('@')[0] || 'Colega').slice(0, 40);
+    userLabel.textContent = display || (email ? email.split('@')[0] : '—');
+    unreadMap = readUnreadStore();
+    showView('chat');
+    updateHeaderForMode();
+    await loadHistory();
+    renderDmTabs();
+    updateUnread();
+    subscribeRealtime();
+  }
+
+  function leaveChatUi() {
+    session = null;
+    dmPeer = null;
+    dmContacts = new Map();
+    setOnline(false);
+    if (titleEl) titleEl.textContent = 'Chat da equipe';
+    subtitle.textContent = 'Rodrigo Facilidades';
+    if (modePill) modePill.dataset.show = 'false';
+    if (backBtn) backBtn.hidden = true;
+    if (tabsEl) { tabsEl.dataset.show = 'false'; tabsEl.innerHTML = ''; }
+    if (channel && client) {
+      try { client.removeChannel(channel); } catch (e) {}
+      channel = null;
+    }
+    knownIds.clear();
+    msgsEl.innerHTML = '';
+    showView('auth');
+  }
+
+  function usernameToEmail(name) {
+    const raw = String(name || '').trim();
+    if (!raw) return null;
+    const slug = raw
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '')
+      .slice(0, 32);
+    if (!slug || slug.length < 2) return null;
+    return slug + '@rf-chat.local';
+  }
+
+  function validateUsername(name) {
+    const n = String(name || '').trim();
+    if (!n || n.length < 2) return 'Informe um nome de usuário (mín. 2 caracteres).';
+    if (n.length > 40) return 'Nome muito longo (máx. 40).';
+    if (!usernameToEmail(n)) return 'Use letras ou números no nome.';
+    return null;
+  }
+
+  async function handleLogin(isSignup) {
+    const password = $('rf-chat-password').value;
+    const display = $('rf-chat-display').value.trim().slice(0, 40);
+    const err = validateUsername(display);
+    if (err) { setAuthMessage(err, 'error'); return; }
+    if (!password || password.length < 6) {
+      setAuthMessage('Senha com pelo menos 6 caracteres.', 'error');
+      return;
+    }
+    const email = usernameToEmail(display);
+    setAuthMessage(isSignup ? 'Criando conta…' : 'Entrando…', '');
+    try {
+      try { localStorage.setItem(DISPLAY_KEY, display); } catch (e) {}
+      if (isSignup) {
+        const { data, error } = await client.auth.signUp({ email, password });
+        if (error) throw error;
+        if (data.session) {
+          await enterChat(data.session);
+          setAuthMessage('');
+        } else {
+          setAuthMessage('Conta criada com sucesso.', 'ok');
+        }
+      } else {
+        const { data, error } = await client.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        await enterChat(data.session);
+        setAuthMessage('');
+      }
+    } catch (e) {
+      let msg = (e && e.message) ? e.message : 'Falha na autenticação.';
+      setAuthMessage(msg, 'error');
+    }
+  }
+
+  async function sendMessage(ev) {
+    if (ev) ev.preventDefault();
+    if (!session || !client) return;
+    const body = input.value.trim();
+    if (!body) return;
+    let display = '';
+    try { display = localStorage.getItem(DISPLAY_KEY) || ''; } catch (e) {}
+    if (!display) {
+      display = ((session.user && session.user.email) || 'Colega').split('@')[0].slice(0, 40);
+    }
+    sendBtn.disabled = true;
+    const payload = {
+      user_id: session.user.id,
+      display_name: display,
+      body: body.slice(0, 2000),
+      recipient_id: dmPeer ? dmPeer.id : null
+    };
+    const { data, error } = await client.from('team_messages').insert(payload).select('id, user_id, recipient_id, display_name, body, created_at').single();
+    sendBtn.disabled = false;
+    if (error) {
+      alert('Não foi possível enviar: ' + error.message);
+      return;
+    }
+    input.value = '';
+    input.focus();
+    if (data) appendMessage(data, true);
+    else await loadHistory();
+  }
+
+  function initUi() {
+    const unlockOnce = () => { unlockAudio(); ensureNotificationPermission(); };
+    document.addEventListener('click', unlockOnce, { once: true, passive: true });
+    document.addEventListener('keydown', unlockOnce, { once: true, passive: true });
+
+    fab.addEventListener('click', openPanel);
+    $('rf-chat-close').addEventListener('click', closePanel);
+    if (backBtn) backBtn.addEventListener('click', backToTeamChat);
+    if (tabsEl) {
+      tabsEl.addEventListener('click', (e) => {
+        const tab = e.target.closest('.rf-chat-tab');
+        if (!tab) return;
+        if (tab.dataset.tab === 'team') backToTeamChat();
+        else if (tab.dataset.tab === 'dm') {
+          openPrivateChat(tab.dataset.peerId, tab.dataset.peerName);
+        }
+      });
+    }
+    $('rf-chat-login').addEventListener('click', () => handleLogin(false));
+    $('rf-chat-signup').addEventListener('click', () => handleLogin(true));
+    logoutBtn.addEventListener('click', async () => {
+      if (client) await client.auth.signOut();
+      leaveChatUi();
+    });
+    msgsEl.addEventListener('click', (e) => {
+      const author = e.target.closest('.rf-chat-msg-author[data-clickable="true"]');
+      if (!author) return;
+      const id = author.getAttribute('data-user-id');
+      const name = author.getAttribute('data-user-name') || 'Colega';
+      if (id) openPrivateChat(id, name);
+    });
+    compose.addEventListener('submit', sendMessage);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    if (!configured()) {
+      showView('setup');
+      subtitle.textContent = 'Não configurado';
+      return;
+    }
+
+    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+      showView('setup');
+      setupEl.querySelector('h3').textContent = 'Biblioteca Supabase não carregou';
+      return;
+    }
+
+    client = window.supabase.createClient(
+      RF_CHAT_CONFIG.supabaseUrl,
+      RF_CHAT_CONFIG.supabaseAnonKey,
+      { auth: { persistSession: true, autoRefreshToken: true } }
+    );
+
+    client.auth.getSession().then(({ data }) => {
+      if (data && data.session) enterChat(data.session);
+      else showView('auth');
+    });
+
+    client.auth.onAuthStateChange((event, sess) => {
+      if (event === 'SIGNED_OUT') leaveChatUi();
+      if (event === 'SIGNED_IN' && sess) enterChat(sess);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initUi);
+  } else {
+    initUi();
+  }
+})();
+</script>
+
+<script>
+  // Initialize Lucide icons after DOM is ready
+  if (window.lucide) {
+    lucide.createIcons();
+  }
+</script>
+
+</body>
+</html>
