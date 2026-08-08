@@ -1069,6 +1069,37 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     }
 
     .sd-kpi:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+
+    .sd-kpi-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .sd-kpi-copy {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+
+    .sd-kpi-copy:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .sd-kpi-copy svg {
+      width: 13px;
+      height: 13px;
+    }
+
     .sd-kpi span { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
     .sd-kpi strong { font-size: 18px; font-variant-numeric: tabular-nums; color: var(--text); font-weight: 700; }
     .sd-kpi-main { background: var(--red-dim); border-color: rgba(248, 113, 113, 0.28); }
@@ -2189,19 +2220,31 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
           <div class="sd-kpis" id="sd-kpis" hidden>
             <div class="sd-kpi sd-kpi-main">
-              <span>Saldo Devedor Total</span>
+              <div class="sd-kpi-header">
+                <span>Saldo Devedor Total</span>
+                <button type="button" class="sd-kpi-copy" data-target="sd-kpi-saldo" title="Copiar Saldo Devedor Total"><i data-lucide="copy"></i></button>
+              </div>
               <strong id="sd-kpi-saldo">R$ 0,00</strong>
             </div>
             <div class="sd-kpi">
-              <span>Valor a Pagar Original</span>
+              <div class="sd-kpi-header">
+                <span>Valor a Pagar Original</span>
+                <button type="button" class="sd-kpi-copy" data-target="sd-kpi-pagar" title="Copiar Valor a Pagar Original"><i data-lucide="copy"></i></button>
+              </div>
               <strong id="sd-kpi-pagar">R$ 0,00</strong>
             </div>
             <div class="sd-kpi">
-              <span>Descontos</span>
+              <div class="sd-kpi-header">
+                <span>Descontos</span>
+                <button type="button" class="sd-kpi-copy" data-target="sd-kpi-desc" title="Copiar Descontos"><i data-lucide="copy"></i></button>
+              </div>
               <strong id="sd-kpi-desc">R$ 0,00</strong>
             </div>
             <div class="sd-kpi">
-              <span>Já Pago (Extrato)</span>
+              <div class="sd-kpi-header">
+                <span>Já Pago (Extrato)</span>
+                <button type="button" class="sd-kpi-copy" data-target="sd-kpi-pago" title="Copiar Já Pago"><i data-lucide="copy"></i></button>
+              </div>
               <strong id="sd-kpi-pago">R$ 0,00</strong>
             </div>
             <div class="sd-kpi">
@@ -3983,35 +4026,51 @@ function render() {
 
   function parseCreditos(text) {
     if (!text || !text.trim()) return [];
-    const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l !== '');
     const records = [];
     const seenCcbs = new Set();
 
-    // 1. Tentar leitura em linha única / Tabela horizontal (Tab/Ponto e vírgula/Espaços duplos)
     for (const line of lines) {
-      const parts = line.split(/\t|;|  +/).map(p => p.trim()).filter(Boolean);
+      // Tab / ; / 2+ spaces first; fallback to single-space tokens
+      let parts = line.split(/\t|;| {2,}/).map(p => p.trim()).filter(Boolean);
+      if (parts.length < 3) {
+        parts = line.split(/\s+/).map(p => p.trim()).filter(Boolean);
+      }
       if (parts.length < 2) continue;
 
       let date = '', ccb = '', status = '', valor = null, valorPagar = null;
+      const joined = parts.join(' ');
 
-      parts.forEach(p => {
-        if (!date && /^\d{2}\/\d{2}\/\d{4}$/.test(p)) date = p;
-        else if (!ccb && /^\d{5,12}$/.test(p)) ccb = p;
-        else if (/em aberto|pago|inadimplente|cancelado/i.test(p)) status = p;
-        else {
-          const m = parseMoney(p);
-          if (m !== null && !/^\d{5,12}$/.test(p)) {
-            if (valor === null) valor = m;
-            else if (valorPagar === null) valorPagar = m;
+      for (let i = 0; i < parts.length; i++) {
+        const p = parts[i];
+        if (!date && /^\d{2}\/\d{2}\/\d{4}$/.test(p)) { date = p; continue; }
+        if (!ccb && /^\d{5,12}$/.test(p)) { ccb = p; continue; }
+        if (!status) {
+          if (/^em$/i.test(p) && parts[i + 1] && /^aberto$/i.test(parts[i + 1])) {
+            status = 'Em aberto';
+            i++;
+            continue;
+          }
+          if (/^(pago|inadimplente|cancelado)$/i.test(p) || /em\s+aberto|pago|inadimplente|cancelado/i.test(p)) {
+            status = p;
+            continue;
           }
         }
-      });
+        const m = parseMoney(p);
+        if (m !== null && !/^\d{5,12}$/.test(p) && !/^\d{1,2}:\d{2}$/.test(p)) {
+          if (valor === null) valor = m;
+          else if (valorPagar === null) valorPagar = m;
+        }
+      }
+
+      if (!status && /em\s+aberto/i.test(joined)) status = 'Em aberto';
+      else if (!status && /\bpago\b/i.test(joined)) status = 'Pago';
 
       if (ccb && !seenCcbs.has(ccb)) {
         seenCcbs.add(ccb);
         records.push({
           date: date || '—',
-          ccb: ccb,
+          ccb,
           status: status || 'Em Aberto',
           valor: valor || 0,
           valorPagar: valorPagar !== null ? valorPagar : (valor || 0)
@@ -4019,7 +4078,7 @@ function render() {
       }
     }
 
-    // 2. Se a leitura horizontal não encontrou registros, ler no formato Empilhado / Bloco Vertical
+    // Multiline / stacked fallback
     if (records.length === 0) {
       let i = 0;
       while (i < lines.length) {
@@ -4037,17 +4096,12 @@ function render() {
           let j = 1;
           while (j <= 8 && (i + j) < lines.length) {
             const nextLine = lines[i + j];
-            if (j > 1 && (/^\d{2}\/\d{2}\/\d{4}$/.test(nextLine) || (/^\d{5,12}$/.test(nextLine) && ccb))) {
-              break;
-            }
+            if (j > 1 && (/^\d{2}\/\d{2}\/\d{4}$/.test(nextLine) || (/^\d{5,12}$/.test(nextLine) && ccb))) break;
 
-            if (!date && /^\d{2}\/\d{2}\/\d{4}$/.test(nextLine)) {
-              date = nextLine;
-            } else if (!ccb && /^\d{5,12}$/.test(nextLine)) {
-              ccb = nextLine;
-            } else if (/em aberto|pago|inadimplente|cancelado/i.test(nextLine)) {
-              status = nextLine;
-            } else {
+            if (!date && /^\d{2}\/\d{2}\/\d{4}$/.test(nextLine)) date = nextLine;
+            else if (!ccb && /^\d{5,12}$/.test(nextLine)) ccb = nextLine;
+            else if (/em\s*aberto|pago|inadimplente|cancelado/i.test(nextLine)) status = nextLine;
+            else {
               const m = parseMoney(nextLine);
               if (m !== null && !/^\d{5,12}$/.test(nextLine)) {
                 if (valor === null) valor = m;
@@ -4061,7 +4115,7 @@ function render() {
             seenCcbs.add(ccb);
             records.push({
               date: date || '—',
-              ccb: ccb,
+              ccb,
               status: status || 'Em Aberto',
               valor: valor || 0,
               valorPagar: valorPagar !== null ? valorPagar : (valor || 0)
@@ -4081,7 +4135,7 @@ function render() {
 
   function parseExtrato(text) {
     if (!text || !text.trim()) return [];
-    const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l !== '');
     const payments = [];
 
     for (let i = 0; i < lines.length; i++) {
@@ -4089,46 +4143,47 @@ function render() {
       if (/saldo do dia/i.test(line)) continue;
 
       const ccbMatch = line.match(/ccb\s*[:.-]?\s*(\d{4,12})/i);
-      if (ccbMatch) {
-        const ccb = ccbMatch[1];
+      if (!ccbMatch) continue;
 
-        // Monta o bloco da transação (linha da CCB + até 3 linhas vizinhas)
-        const blockLines = [];
-        if (i > 0 && !lines[i - 1].match(/ccb\s*[:.-]?\s*(\d{4,12})/i)) blockLines.push(lines[i - 1]);
-        blockLines.push(line);
-        for (let next = 1; next <= 3 && (i + next) < lines.length; next++) {
-          const nextLine = lines[i + next];
-          if (nextLine.match(/ccb\s*[:.-]?\s*(\d{4,12})/i) || /saldo do dia/i.test(nextLine)) break;
-          blockLines.push(nextLine);
+      const ccb = ccbMatch[1];
+      const blockLines = [];
+      if (i > 0 && !lines[i - 1].match(/ccb\s*[:.-]?\s*(\d{4,12})/i)) blockLines.push(lines[i - 1]);
+      blockLines.push(line);
+      for (let next = 1; next <= 3 && (i + next) < lines.length; next++) {
+        const nextLine = lines[i + next];
+        if (nextLine.match(/ccb\s*[:.-]?\s*(\d{4,12})/i) || /saldo do dia/i.test(nextLine)) break;
+        blockLines.push(nextLine);
+      }
+
+      const blockText = blockLines.join(' ');
+      if (/Falhou|cancelad|estornad|recusad|nao confirmado|não confirmado|erro/i.test(blockText)) continue;
+
+      let value = 0;
+      const moneyInBlock = blockText.match(/r\$\s*[\d.,]+|[\d]+[.,]\d{2}/gi);
+      if (moneyInBlock) {
+        for (let mi = moneyInBlock.length - 1; mi >= 0; mi--) {
+          const m = parseMoney(moneyInBlock[mi]);
+          if (m !== null && m !== 0) { value = Math.abs(m); break; }
         }
+      }
 
-        const blockText = blockLines.join(' ');
-
-        // Se o bloco contiver 'Falhou', 'Cancelado', 'Estornado', etc., IGNORA o pagamento!
-        if (/Falhou|cancelad|estornad|recusad|nao confirmado|não confirmado|erro/i.test(blockText)) {
-          continue;
-        }
-
-        // Se a transação foi confirmada, busca o valor pago dentro do bloco
-        let value = 0;
+      if (value === 0) {
         for (const bline of blockLines) {
-          const parts = bline.split(/\t|;|  +/).map(p => p.trim());
+          const parts = bline.split(/\t|;| {2,}|\s+/).map(p => p.trim()).filter(Boolean);
           for (let k = parts.length - 1; k >= 0; k--) {
             const p = parts[k];
             if (p.includes(ccb)) continue;
             const m = parseMoney(p);
-            if (m !== null && m !== 0 && !/^\d{1,2}:\d{2}$/.test(p)) {
+            if (m !== null && m !== 0 && !/^\d{1,2}:\d{2}$/.test(p) && !/^\d{2}\/\d{2}\/\d{4}$/.test(p)) {
               value = Math.abs(m);
               break;
             }
           }
           if (value > 0) break;
         }
-
-        if (value > 0) {
-          payments.push({ ccb, value, rawLine: line });
-        }
       }
+
+      if (value > 0) payments.push({ ccb, value, rawLine: line });
     }
 
     return payments;
@@ -4136,30 +4191,75 @@ function render() {
 
   function parseDescontos(text) {
     if (!text || !text.trim()) return [];
-    const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l !== '');
     const discounts = [];
 
     for (const line of lines) {
       const ccbMatch = line.match(/(?:ccb\s*[:.-]?\s*|^|\b)(\d{5,12})\b/i);
-      if (ccbMatch) {
-        const ccb = ccbMatch[1];
-        let value = 0;
-        const parts = line.split(/\t|;|  +/).map(p => p.trim());
+      if (!ccbMatch) continue;
+      const ccb = ccbMatch[1];
+      let value = 0;
+
+      const moneyMatch = line.match(/r\$\s*[\d.,]+|[\d]+[.,]\d{2}/gi);
+      if (moneyMatch) {
+        for (let mi = moneyMatch.length - 1; mi >= 0; mi--) {
+          const m = parseMoney(moneyMatch[mi]);
+          if (m !== null && m > 0) { value = m; break; }
+        }
+      }
+
+      if (value === 0) {
+        const parts = line.split(/\t|;| {2,}|\s+/).map(p => p.trim()).filter(Boolean);
         for (let i = parts.length - 1; i >= 0; i--) {
           if (parts[i].includes(ccb)) continue;
           const m = parseMoney(parts[i]);
           if (m !== null && m > 0) { value = m; break; }
         }
-        if (value > 0) discounts.push({ ccb, value });
       }
+
+      if (value > 0) discounts.push({ ccb, value });
     }
     return discounts;
   }
 
+  async function execCopy(textToCopy) {
+    const text = String(textToCopy == null ? '' : textToCopy);
+    let success = false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        success = true;
+      }
+    } catch (err) {}
+
+    if (!success) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0;';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try { success = document.execCommand('copy'); } catch (err) { success = false; }
+      ta.remove();
+    }
+    return success;
+  }
+
+  async function copyKpiValue(targetId) {
+    const el = $(targetId);
+    if (!el) { notify('Valor não encontrado.', 'error'); return; }
+    // ONLY plain text — never HTML
+    const clean = (el.textContent || el.innerText || '').trim();
+    if (!clean) { notify('Nada para copiar.', 'warn'); return; }
+    const ok = await execCopy(clean);
+    notify(ok ? ('Copiado: ' + clean) : 'Falha ao copiar.', ok ? 'success' : 'error');
+  }
+
   function processar() {
-    const rawCred = $('sd-creditos').value;
-    const rawPag = $('sd-pagamentos').value;
-    const rawDesc = $('sd-descontos').value;
+    const rawCred = $('sd-creditos') ? $('sd-creditos').value : '';
+    const rawPag = $('sd-pagamentos') ? $('sd-pagamentos').value : '';
+    const rawDesc = $('sd-descontos') ? $('sd-descontos').value : '';
     const onlyOpen = $('sd-only-open') ? $('sd-only-open').checked : true;
     const searchQuery = $('sd-search') ? $('sd-search').value.trim().toLowerCase() : '';
 
@@ -4173,12 +4273,13 @@ function render() {
 
     if (detCred) {
       detCred.className = 'sd-detect ' + (creditos.length ? 'ok' : 'err');
-      detCred.innerHTML = creditos.length ? `<i data-lucide="check-circle"></i> ${creditos.length} contrato(s) identificado(s)` : (rawCred.trim() ? '<i data-lucide="alert-circle"></i> Nenhum contrato reconhecido' : '');
+      detCred.innerHTML = creditos.length
+        ? `<i data-lucide="check-circle"></i> ${creditos.length} contrato(s) identificado(s)`
+        : (rawCred.trim() ? '<i data-lucide="alert-circle"></i> Nenhum contrato reconhecido' : '');
     }
     if (detPag) {
       const ccbMatches = rawPag.match(/ccb\s*[:.-]?\s*\d+/gi) || [];
       const hasFailed = /falhou|cancelad|estornad|recusad|nao confirmado|não confirmado|erro/i.test(rawPag);
-
       if (pagamentos.length > 0) {
         detPag.className = 'sd-detect ok';
         detPag.innerHTML = `<i data-lucide="check-circle"></i> ${pagamentos.length} pagamento(s) de CCB confirmado(s)`;
@@ -4195,15 +4296,23 @@ function render() {
     }
     if (detDesc) {
       detDesc.className = 'sd-detect ' + (descontos.length ? 'ok' : '');
-      detDesc.innerHTML = descontos.length ? `<i data-lucide="check-circle"></i> ${descontos.length} desconto(s) localizado(s)` : '';
+      detDesc.innerHTML = descontos.length
+        ? `<i data-lucide="check-circle"></i> ${descontos.length} desconto(s) localizado(s)`
+        : '';
     }
 
     if (!creditos.length) {
-      $('sd-kpis').hidden = true;
-      $('sd-table-wrap').hidden = true;
-      $('sd-empty').hidden = false;
-      $('sd-alertas').innerHTML = '';
       processedRows = [];
+      if ($('sd-kpi-saldo')) $('sd-kpi-saldo').textContent = 'R$ 0,00';
+      if ($('sd-kpi-pagar')) $('sd-kpi-pagar').textContent = 'R$ 0,00';
+      if ($('sd-kpi-desc')) $('sd-kpi-desc').textContent = 'R$ 0,00';
+      if ($('sd-kpi-pago')) $('sd-kpi-pago').textContent = 'R$ 0,00';
+      if ($('sd-kpi-qtd')) $('sd-kpi-qtd').textContent = '0';
+      if ($('sd-kpis')) $('sd-kpis').hidden = true;
+      if ($('sd-table-wrap')) $('sd-table-wrap').hidden = true;
+      if ($('sd-empty')) $('sd-empty').hidden = false;
+      if ($('sd-alertas')) $('sd-alertas').innerHTML = '';
+      if ($('sd-tbody')) $('sd-tbody').innerHTML = '';
       if (window.lucide) lucide.createIcons();
       return;
     }
@@ -4218,7 +4327,7 @@ function render() {
       descByCcb.set(d.ccb, (descByCcb.get(d.ccb) || 0) + d.value);
     });
 
-    let rows = creditos.map(c => {
+    const rows = creditos.map(c => {
       const pago = pagoByCcb.get(c.ccb) || 0;
       const desconto = descByCcb.get(c.ccb) || 0;
       const liquido = c.valorPagar - desconto;
@@ -4250,12 +4359,15 @@ function render() {
 
     processedRows = rows;
 
-    let displayRows = rows;
+    let displayRows = rows.slice();
     if (onlyOpen) {
       displayRows = displayRows.filter(r => r.status !== 'quitado' && !/pago/i.test(r.statusMentore));
     }
     if (searchQuery) {
-      displayRows = displayRows.filter(r => r.ccb.toLowerCase().includes(searchQuery) || r.statusTxt.toLowerCase().includes(searchQuery));
+      displayRows = displayRows.filter(r =>
+        r.ccb.toLowerCase().includes(searchQuery) ||
+        r.statusTxt.toLowerCase().includes(searchQuery)
+      );
     }
 
     render(displayRows, rows);
@@ -4271,30 +4383,34 @@ function render() {
       saldo: a.saldo + r.saldo
     }), { pagar: 0, desconto: 0, pago: 0, saldo: 0 });
 
-    $('sd-kpi-saldo').textContent = brl(tot.saldo);
-    $('sd-kpi-pagar').textContent = brl(tot.pagar);
-    $('sd-kpi-desc').textContent = brl(tot.desconto);
-    $('sd-kpi-pago').textContent = brl(tot.pago);
-    $('sd-kpi-qtd').textContent = String(openRows.length);
+    if ($('sd-kpi-saldo')) $('sd-kpi-saldo').textContent = brl(tot.saldo);
+    if ($('sd-kpi-pagar')) $('sd-kpi-pagar').textContent = brl(tot.pagar);
+    if ($('sd-kpi-desc')) $('sd-kpi-desc').textContent = brl(tot.desconto);
+    if ($('sd-kpi-pago')) $('sd-kpi-pago').textContent = brl(tot.pago);
+    if ($('sd-kpi-qtd')) $('sd-kpi-qtd').textContent = String(openRows.length);
 
-    $('sd-kpis').hidden = false;
-    $('sd-table-wrap').hidden = displayRows.length === 0;
-    $('sd-empty').hidden = displayRows.length > 0;
+    if ($('sd-kpis')) $('sd-kpis').hidden = false;
+    if ($('sd-table-wrap')) $('sd-table-wrap').hidden = displayRows.length === 0;
+    if ($('sd-empty')) $('sd-empty').hidden = displayRows.length > 0;
 
     const tb = $('sd-tbody');
+    if (!tb) return;
     tb.innerHTML = '';
 
     displayRows.forEach(r => {
       const tr = document.createElement('tr');
-      const td = (txt, cls) => { const d = document.createElement('td'); if (cls) d.className = cls; d.textContent = txt; return d; };
+      const td = (txt, cls) => {
+        const d = document.createElement('td');
+        if (cls) d.className = cls;
+        d.textContent = txt;
+        return d;
+      };
 
       const ccbTd = td('');
       ccbTd.innerHTML = `<span class="sd-ccb" title="Clique para copiar CCB">${r.ccb} <i data-lucide="copy" style="width:12px;height:12px"></i></span>`;
-      ccbTd.onclick = () => {
-        try {
-          navigator.clipboard.writeText(r.ccb);
-          notify('CCB ' + r.ccb + ' copiado!');
-        } catch (e) {}
+      ccbTd.onclick = async () => {
+        const ok = await execCopy(r.ccb);
+        notify(ok ? ('CCB ' + r.ccb + ' copiado!') : 'Falha ao copiar.', ok ? 'success' : 'error');
       };
 
       tr.appendChild(td(r.date));
@@ -4325,11 +4441,9 @@ function render() {
     const dec = n => (Number(n) || 0).toFixed(2).replace('.', ',');
     const head = ['Data', 'CCB', 'Valor a Pagar', 'Desconto', 'Ja Pago (Extrato)', 'Saldo Devedor', 'Status'];
     const lines = [head.join(';')];
-
     processedRows.forEach(r => {
       lines.push([r.date, r.ccb, dec(r.valorPagar), dec(r.desconto), dec(r.pago), dec(r.saldo), r.statusTxt].join(';'));
     });
-
     const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -4343,9 +4457,9 @@ function render() {
   function save() {
     try {
       localStorage.setItem(LS_KEY, JSON.stringify({
-        creditos: $('sd-creditos').value,
-        pagamentos: $('sd-pagamentos').value,
-        descontos: $('sd-descontos').value
+        creditos: $('sd-creditos') ? $('sd-creditos').value : '',
+        pagamentos: $('sd-pagamentos') ? $('sd-pagamentos').value : '',
+        descontos: $('sd-descontos') ? $('sd-descontos').value : ''
       }));
     } catch (e) {}
   }
@@ -4360,22 +4474,58 @@ function render() {
     } catch (e) {}
   }
 
+  function limparTudo() {
+    if (!confirm('Deseja limpar todos os campos colados e o resultado?')) return;
+    if ($('sd-creditos')) $('sd-creditos').value = '';
+    if ($('sd-pagamentos')) $('sd-pagamentos').value = '';
+    if ($('sd-descontos')) $('sd-descontos').value = '';
+    if ($('sd-search')) $('sd-search').value = '';
+    if ($('sd-only-open')) $('sd-only-open').checked = true;
+
+    const detCred = $('sd-detect-creditos');
+    const detPag = $('sd-detect-pagamentos');
+    const detDesc = $('sd-detect-descontos');
+    if (detCred) { detCred.className = 'sd-detect'; detCred.innerHTML = ''; }
+    if (detPag) { detPag.className = 'sd-detect'; detPag.innerHTML = ''; }
+    if (detDesc) { detDesc.className = 'sd-detect'; detDesc.innerHTML = ''; }
+
+    processedRows = [];
+    if ($('sd-kpi-saldo')) $('sd-kpi-saldo').textContent = 'R$ 0,00';
+    if ($('sd-kpi-pagar')) $('sd-kpi-pagar').textContent = 'R$ 0,00';
+    if ($('sd-kpi-desc')) $('sd-kpi-desc').textContent = 'R$ 0,00';
+    if ($('sd-kpi-pago')) $('sd-kpi-pago').textContent = 'R$ 0,00';
+    if ($('sd-kpi-qtd')) $('sd-kpi-qtd').textContent = '0';
+    if ($('sd-kpis')) $('sd-kpis').hidden = true;
+    if ($('sd-table-wrap')) $('sd-table-wrap').hidden = true;
+    if ($('sd-empty')) $('sd-empty').hidden = false;
+    if ($('sd-alertas')) $('sd-alertas').innerHTML = '';
+    if ($('sd-tbody')) $('sd-tbody').innerHTML = '';
+
+    try { localStorage.removeItem(LS_KEY); } catch (e) {}
+
+    if (window.lucide) lucide.createIcons();
+    notify('Campos limpos!', 'warn');
+  }
+
   function init() {
     if (!$('sd-processar')) return;
 
     $('sd-processar').onclick = () => { processar(); notify('Relatório processado!'); };
-    $('sd-exportar').onclick = exportCsv;
-    $('sd-limpar').onclick = () => {
-      if (!confirm('Deseja limpar todos os campos colados e o resultado?')) return;
-      $('sd-creditos').value = '';
-      $('sd-pagamentos').value = '';
-      $('sd-descontos').value = '';
-      processar();
-      notify('Campos limpos!', 'warn');
-    };
+    if ($('sd-exportar')) $('sd-exportar').onclick = exportCsv;
+    if ($('sd-limpar')) $('sd-limpar').onclick = limparTudo;
 
     if ($('sd-only-open')) $('sd-only-open').onchange = processar;
     if ($('sd-search')) $('sd-search').oninput = processar;
+
+    // KPI copy: always textContent of the target <strong>
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.sd-kpi-copy');
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const targetId = btn.getAttribute('data-target');
+      if (targetId) copyKpiValue(targetId);
+    });
 
     ['creditos', 'pagamentos', 'descontos'].forEach(k => {
       const ta = $('sd-' + k);
@@ -4388,7 +4538,7 @@ function render() {
     });
 
     load();
-    if ($('sd-creditos').value.trim()) processar();
+    if ($('sd-creditos') && $('sd-creditos').value.trim()) processar();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
@@ -4402,28 +4552,58 @@ function render() {
   'use strict';
   const KEY = 'rf_theme_v1';
   const root = document.documentElement;
-  const btn = document.getElementById('theme-toggle-btn');
-  const label = document.getElementById('theme-toggle-label');
 
   function current() {
-    return root.getAttribute('data-theme') === 'classic' ? 'classic' : 'lime';
+    const t = root.getAttribute('data-theme');
+    return t === 'classic' ? 'classic' : 'lime';
   }
 
   function apply(theme) {
-    root.setAttribute('data-theme', theme);
-    try { localStorage.setItem(KEY, theme); } catch (e) {}
-    if (label) label.textContent = theme === 'classic' ? 'Tema ET Verde' : 'Tema ET Azul';
-    if (btn) btn.title = theme === 'classic' ? 'Mudar para Modern Lime' : 'Mudar para Classic ET';
-    if (window.lucide) lucide.createIcons();
+    const next = theme === 'classic' ? 'classic' : 'lime';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem(KEY, next); } catch (e) {}
+
+    const btn = document.getElementById('theme-toggle-btn');
+    const label = document.getElementById('theme-toggle-label');
+
+    // Label mostra o tema ATIVO
+    if (label) {
+      label.textContent = next === 'classic' ? 'Tema Azul' : 'Tema Verde';
+    }
+    if (btn) {
+      btn.title = next === 'classic'
+        ? 'Clique para mudar para Tema Verde'
+        : 'Clique para mudar para Tema Azul';
+      btn.setAttribute('aria-label', btn.title);
+    }
+
+    // Re-render lucide icons without replacing the whole button listener tree
+    try {
+      if (window.lucide && typeof lucide.createIcons === 'function') {
+        lucide.createIcons();
+      }
+    } catch (e) {}
   }
 
+  function toggleTheme(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    apply(current() === 'classic' ? 'lime' : 'classic');
+  }
+
+  // Aplicar tema salvo (ou default)
   apply(current());
 
-  if (btn) {
-    btn.addEventListener('click', () => {
-      apply(current() === 'classic' ? 'lime' : 'classic');
-    });
-  }
+  // Delegação: funciona mesmo se o Lucide trocar o ícone interno do botão
+  document.addEventListener('click', function (e) {
+    const btn = e.target && e.target.closest
+      ? e.target.closest('#theme-toggle-btn')
+      : null;
+    if (!btn) return;
+    toggleTheme(e);
+  });
 })();
 </script>
 
