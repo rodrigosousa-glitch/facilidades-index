@@ -310,20 +310,34 @@
     [data-theme="rgb"] .macro-editor-disclosure > summary,
     [data-theme="rgb"] .rf-chat-fab,
     [data-theme="rgb"] .rf-chat-send {
-      animation: rf-rgb-shift 8s linear infinite;
+      animation: rf-rgb-shift 4s linear infinite;
       border: none;
       filter: none;
+    }
+
+    @keyframes rf-rgb-nav {
+      0%   { color: #ef4444; background: rgba(239, 68, 68, 0.12); box-shadow: inset 0 0 0 1px #ef4444; }
+      16%  { color: #f97316; background: rgba(249, 115, 22, 0.12); box-shadow: inset 0 0 0 1px #f97316; }
+      33%  { color: #eab308; background: rgba(234, 179, 8, 0.12);  box-shadow: inset 0 0 0 1px #eab308; }
+      50%  { color: #89f336; background: rgba(137, 243, 54, 0.12); box-shadow: inset 0 0 0 1px #89f336; }
+      66%  { color: #22d3ee; background: rgba(34, 211, 238, 0.12); box-shadow: inset 0 0 0 1px #22d3ee; }
+      83%  { color: #8b5cf6; background: rgba(139, 92, 246, 0.12); box-shadow: inset 0 0 0 1px #8b5cf6; }
+      100% { color: #ec4899; background: rgba(236, 72, 153, 0.12); box-shadow: inset 0 0 0 1px #ec4899; }
     }
 
     [data-theme="rgb"] .btn.accent,
     [data-theme="rgb"] .sync-btn,
     [data-theme="rgb"] .shortcut-badge,
-    [data-theme="rgb"] .nav-tab.active,
     [data-theme="rgb"] .banco-card .btn-copy,
     [data-theme="rgb"] .banco-code,
     [data-theme="rgb"] .editing-tag {
-      animation: rf-rgb-border 8s linear infinite;
+      animation: rf-rgb-border 4s linear infinite;
       background: transparent;
+    }
+
+    [data-theme="rgb"] .nav-tab.active {
+      animation: rf-rgb-nav 4s linear infinite;
+      border: none;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
