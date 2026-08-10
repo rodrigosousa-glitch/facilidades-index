@@ -9,11 +9,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script>
-    // Apply saved theme ASAP to avoid flash (visual only)
+    // Apply saved theme ASAP to avoid flash (suporta 5 temas)
     (function () {
       try {
         var t = localStorage.getItem('rf_theme_v1');
-        if (t === 'classic' || t === 'lime') document.documentElement.setAttribute('data-theme', t);
+        if (['classic', 'lime', 'pink', 'red', 'rgb'].includes(t)) document.documentElement.setAttribute('data-theme', t);
         else document.documentElement.setAttribute('data-theme', 'lime');
       } catch (e) {
         document.documentElement.setAttribute('data-theme', 'lime');
@@ -129,7 +129,169 @@
       --toast-bg: #10b981;
       --toast-color: #052e20;
     }
+/* ═══ THEME: Pink Cyberpunk ═══ */
+    [data-theme="pink"] {
+      --bg: #050608;
+      --bg-elevated: #0b0f14;
+      --card: #101317;
+      --card-raised: #151a20;
+      --card-hover: #1a2028;
+      --border: rgba(255, 255, 255, 0.06);
+      --border-strong: rgba(255, 255, 255, 0.10);
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --muted: #64748b;
+      --muted-dim: #475569;
+      --accent: #ec4899;
+      --accent-dim: rgba(236, 72, 153, 0.12);
+      --accent-border: rgba(236, 72, 153, 0.30);
+      --accent-glow: rgba(236, 72, 153, 0.20);
+      --green: #34d399;
+      --green-dim: rgba(52, 211, 153, 0.12);
+      --amber: #fbbf24;
+      --amber-dim: rgba(251, 191, 36, 0.12);
+      --red: #f87171;
+      --red-dim: rgba(248, 113, 113, 0.12);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.45);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --header-bg: rgba(16, 19, 23, 0.78);
+      --body-bg: var(--bg);
+      --sync-zone-bg: rgba(236, 72, 153, 0.03);
+      --sync-zone-border: 1px solid rgba(255, 255, 255, 0.06);
+      --brand-icon-bg: var(--accent-dim);
+      --brand-icon-border: var(--accent-border);
+      --brand-icon-color: var(--accent);
+      --brand-icon-shadow: 0 0 20px var(--accent-glow);
+      --btn-primary-bg: var(--accent);
+      --btn-primary-color: #0a0f08;
+      --btn-primary-hover: #f472b6;
+      --btn-primary-shadow: 0 0 16px var(--accent-glow);
+      --nav-active-bg: var(--accent-dim);
+      --nav-active-color: var(--accent);
+      --nav-active-shadow: inset 0 0 0 1px var(--accent-border);
+      --focus-ring: 0 0 0 3px var(--accent-glow);
+      --focus-border: rgba(236, 72, 153, 0.45);
+      --progress-bar: var(--accent);
+      --toast-bg: var(--accent);
+      --toast-color: #0a0f08;
+    }
 
+    /* ═══ THEME: Neon Red ═══ */
+    [data-theme="red"] {
+      --bg: #050608;
+      --bg-elevated: #0b0f14;
+      --card: #101317;
+      --card-raised: #151a20;
+      --card-hover: #1a2028;
+      --border: rgba(255, 255, 255, 0.06);
+      --border-strong: rgba(255, 255, 255, 0.10);
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --muted: #64748b;
+      --muted-dim: #475569;
+      --accent: #ef4444;
+      --accent-dim: rgba(239, 68, 68, 0.12);
+      --accent-border: rgba(239, 68, 68, 0.30);
+      --accent-glow: rgba(239, 68, 68, 0.20);
+      --green: #34d399;
+      --green-dim: rgba(52, 211, 153, 0.12);
+      --amber: #fbbf24;
+      --amber-dim: rgba(251, 191, 36, 0.12);
+      --red: #f87171;
+      --red-dim: rgba(248, 113, 113, 0.12);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.45);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --header-bg: rgba(16, 19, 23, 0.78);
+      --body-bg: var(--bg);
+      --sync-zone-bg: rgba(239, 68, 68, 0.03);
+      --sync-zone-border: 1px solid rgba(255, 255, 255, 0.06);
+      --brand-icon-bg: var(--accent-dim);
+      --brand-icon-border: var(--accent-border);
+      --brand-icon-color: var(--accent);
+      --brand-icon-shadow: 0 0 20px var(--accent-glow);
+      --btn-primary-bg: var(--accent);
+      --btn-primary-color: #ffffff;
+      --btn-primary-hover: #f87171;
+      --btn-primary-shadow: 0 0 16px var(--accent-glow);
+      --nav-active-bg: var(--accent-dim);
+      --nav-active-color: var(--accent);
+      --nav-active-shadow: inset 0 0 0 1px var(--accent-border);
+      --focus-ring: 0 0 0 3px var(--accent-glow);
+      --focus-border: rgba(239, 68, 68, 0.45);
+      --progress-bar: var(--accent);
+      --toast-bg: var(--accent);
+      --toast-color: #ffffff;
+    }
+
+    /* ═══ THEME: RGB Chroma Gamer Fluído ═══ */
+    @property --rgb-hue {
+      syntax: '<angle>';
+      inherits: true;
+      initial-value: 0deg;
+    }
+
+    [data-theme="rgb"] {
+      --bg: #050608;
+      --bg-elevated: #0b0f14;
+      --card: #101317;
+      --card-raised: #151a20;
+      --card-hover: #1a2028;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --muted: #64748b;
+      --muted-dim: #475569;
+      --green: #34d399;
+      --green-dim: rgba(52, 211, 153, 0.12);
+      --amber: #fbbf24;
+      --amber-dim: rgba(251, 191, 36, 0.12);
+      --red: #f87171;
+      --red-dim: rgba(248, 113, 113, 0.12);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.45);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --header-bg: rgba(16, 19, 23, 0.78);
+      --body-bg: var(--bg);
+      --sync-zone-bg: hsla(var(--rgb-hue, 0deg), 100%, 60%, 0.03);
+      --sync-zone-border: 1px solid rgba(255, 255, 255, 0.06);
+
+      /* Transição de Cores HSL Contínua */
+      --accent: hsl(var(--rgb-hue, 0deg), 100%, 60%);
+      --accent-dim: hsla(var(--rgb-hue, 0deg), 100%, 60%, 0.14);
+      --accent-border: hsla(var(--rgb-hue, 0deg), 100%, 60%, 0.38);
+      --accent-glow: hsla(var(--rgb-hue, 0deg), 100%, 60%, 0.28);
+      --brand-icon-bg: var(--accent-dim);
+      --brand-icon-border: var(--accent-border);
+      --brand-icon-color: var(--accent);
+      --brand-icon-shadow: 0 0 20px var(--accent-glow);
+      --btn-primary-bg: hsl(var(--rgb-hue, 0deg), 100%, 60%);
+      --btn-primary-color: #050608;
+      --btn-primary-hover: hsl(var(--rgb-hue, 0deg), 100%, 68%);
+      --btn-primary-shadow: 0 0 16px var(--accent-glow);
+      --nav-active-bg: var(--accent-dim);
+      --nav-active-color: hsl(var(--rgb-hue, 0deg), 100%, 60%);
+      --nav-active-shadow: inset 0 0 0 1px var(--accent-border);
+      --focus-ring: 0 0 0 3px var(--accent-glow);
+      --focus-border: hsla(var(--rgb-hue, 0deg), 100%, 60%, 0.55);
+      --progress-bar: hsl(var(--rgb-hue, 0deg), 100%, 60%);
+      --toast-bg: hsl(var(--rgb-hue, 0deg), 100%, 60%);
+      --toast-color: #050608;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -4723,38 +4885,68 @@ function render() {
 })();
 </script>
 
-<!-- SCRIPT DE TEMAS -->
+<!-- SCRIPT DE TEMAS (COM MOTOR RGB FLUÍDO 60FPS) -->
 <script>
 (() => {
   'use strict';
   const KEY = 'rf_theme_v1';
   const root = document.documentElement;
+  const ORDER = ['lime', 'classic', 'pink', 'red', 'rgb'];
+  const LABELS = {
+    lime: 'Tema Verde',
+    classic: 'Tema Azul',
+    pink: 'Tema Rosa',
+    red: 'Tema Vermelho',
+    rgb: 'Tema LSD 🌈'
+  };
+
+  let rgbAnimFrame = null;
+  let hueAngle = 0;
+
+  function startRgbLoop() {
+    if (rgbAnimFrame) cancelAnimationFrame(rgbAnimFrame);
+    function animate() {
+      hueAngle = (hueAngle + 1.2) % 360;
+      root.style.setProperty('--rgb-hue', hueAngle + 'deg');
+      rgbAnimFrame = requestAnimationFrame(animate);
+    }
+    rgbAnimFrame = requestAnimationFrame(animate);
+  }
+
+  function stopRgbLoop() {
+    if (rgbAnimFrame) {
+      cancelAnimationFrame(rgbAnimFrame);
+      rgbAnimFrame = null;
+    }
+    root.style.removeProperty('--rgb-hue');
+  }
 
   function current() {
     const t = root.getAttribute('data-theme');
-    return t === 'classic' ? 'classic' : 'lime';
+    return ORDER.includes(t) ? t : 'lime';
   }
 
   function apply(theme) {
-    const next = theme === 'classic' ? 'classic' : 'lime';
+    const next = ORDER.includes(theme) ? theme : 'lime';
     root.setAttribute('data-theme', next);
     try { localStorage.setItem(KEY, next); } catch (e) {}
 
-    const btn = document.getElementById('theme-toggle-btn');
-    const label = document.getElementById('theme-toggle-label');
-
-    // Label mostra o tema ATIVO
-    if (label) {
-      label.textContent = next === 'classic' ? 'Tema Azul' : 'Tema Verde';
+    if (next === 'rgb') {
+      startRgbLoop();
+    } else {
+      stopRgbLoop();
     }
+
+    const label = document.getElementById('theme-toggle-label');
+    const btn = document.getElementById('theme-toggle-btn');
+
+    if (label) label.textContent = LABELS[next];
     if (btn) {
-      btn.title = next === 'classic'
-        ? 'Clique para mudar para Tema Verde'
-        : 'Clique para mudar para Tema Azul';
+      const nextIdx = (ORDER.indexOf(next) + 1) % ORDER.length;
+      btn.title = `Clique para mudar para ${LABELS[ORDER[nextIdx]]}`;
       btn.setAttribute('aria-label', btn.title);
     }
 
-    // Re-render lucide icons without replacing the whole button listener tree
     try {
       if (window.lucide && typeof lucide.createIcons === 'function') {
         lucide.createIcons();
@@ -4767,13 +4959,13 @@ function render() {
       e.preventDefault();
       e.stopPropagation();
     }
-    apply(current() === 'classic' ? 'lime' : 'classic');
+    const curr = current();
+    const nextIdx = (ORDER.indexOf(curr) + 1) % ORDER.length;
+    apply(ORDER[nextIdx]);
   }
 
-  // Aplicar tema salvo (ou default)
   apply(current());
 
-  // Delegação: funciona mesmo se o Lucide trocar o ícone interno do botão
   document.addEventListener('click', function (e) {
     const btn = e.target && e.target.closest
       ? e.target.closest('#theme-toggle-btn')
