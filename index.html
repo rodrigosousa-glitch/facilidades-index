@@ -205,17 +205,98 @@
 
     .header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
+    .header-disclosure {
+      position: relative;
+    }
+
+    .header-disclosure > summary,
+    .assistant-setup > summary,
+    .macro-editor-disclosure > summary {
+      list-style: none;
+    }
+
+    .header-disclosure > summary::-webkit-details-marker,
+    .assistant-setup > summary::-webkit-details-marker,
+    .macro-editor-disclosure > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .header-disclosure > summary {
+      cursor: pointer;
+    }
+
+    .header-disclosure[open] > summary {
+      color: var(--text);
+      border-color: var(--accent-border);
+      background: var(--accent-dim);
+    }
+
+    .data-backup-panel {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      z-index: 80;
+      width: min(680px, calc(100vw - 56px));
+      padding: 14px;
+      border: 1px solid var(--border-strong);
+      border-radius: 12px;
+      background: var(--card);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .data-backup-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .data-backup-panel .file-badge {
+      margin-left: auto;
+    }
+
     /* ── SYNC ZONE ── */
+    .assistant-setup {
+      margin-top: 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--sync-zone-bg);
+      overflow: hidden;
+    }
+
+    .assistant-setup > summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 46px;
+      padding: 11px 16px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .assistant-setup > summary:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .assistant-setup > summary span {
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 500;
+    }
+
+    .assistant-setup[open] > summary {
+      border-bottom: 1px solid var(--border);
+    }
+
     .sync-zone {
       display: grid;
       grid-template-columns: minmax(240px, 1fr) auto;
       align-items: center;
       gap: 14px 24px;
-      margin-top: 18px;
       padding: 16px 18px;
-      border: var(--sync-zone-border, 1px solid var(--border));
-      border-radius: 10px;
-      background: var(--sync-zone-bg);
     }
 
     .sync-zone p { color: var(--muted); font-size: 12.5px; line-height: 1.55; }
@@ -462,9 +543,69 @@
     /* ── MACROS WORKSPACE ── */
     .workspace-grid {
       display: grid;
-      grid-template-columns: 320px minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr) 320px;
       gap: 20px;
       align-items: start;
+    }
+
+    .macro-library-card {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .macro-editor-card {
+      grid-column: 2;
+      grid-row: 1;
+      padding: 14px;
+    }
+
+    .macro-editor-disclosure > summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-color);
+      cursor: pointer;
+      box-shadow: var(--btn-primary-shadow);
+    }
+
+    .macro-editor-summary-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .macro-editor-summary-title svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .macro-editor-disclosure > summary .title {
+      color: inherit;
+    }
+
+    .macro-editor-disclosure[open] > summary {
+      margin-bottom: 18px;
+    }
+
+    .macro-editor-disclosure .editing-tag {
+      color: var(--btn-primary-color);
+      border-color: currentColor;
+      background: rgba(0, 0, 0, 0.12);
+    }
+
+    .macro-form-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .macro-form-submit {
+      flex: 1;
     }
 
     .title {
@@ -1436,6 +1577,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     @media (max-width: 1100px) {
       .app-layout { grid-template-columns: 1fr; }
       .workspace-grid { grid-template-columns: 1fr; }
+      .macro-editor-card { grid-column: 1; grid-row: 1; }
+      .macro-library-card { grid-column: 1; grid-row: 2; }
       .ponto-card { position: static; }
       .main-nav { flex-wrap: wrap; }
       .nav-tab { flex: 1 1 auto; min-width: 130px; }
@@ -1445,6 +1588,23 @@ input[type="date"]::-webkit-calendar-picker-indicator {
       .ponto-actions { grid-template-columns: 1fr; }
       .ponto-metrics { grid-template-columns: 1fr; }
       body { padding: 14px; }
+      header { padding: 16px; }
+      .top-bar { gap: 14px; }
+      .header-actions { width: 100%; justify-content: space-between; }
+      .data-backup-panel {
+        right: 0;
+        width: calc(100vw - 28px);
+      }
+      .data-backup-actions { display: grid; grid-template-columns: 1fr; }
+      .data-backup-actions .btn { width: 100%; }
+      .data-backup-panel .file-badge { margin-left: 0; text-align: center; }
+      .assistant-setup > summary { align-items: flex-start; flex-direction: column; gap: 2px; }
+      .sync-zone { grid-template-columns: minmax(0, 1fr); padding: 14px; }
+      .sync-zone-actions { display: grid; grid-template-columns: 1fr; width: 100%; }
+      .sync-zone-actions .btn { width: 100%; white-space: normal; }
+      .sync-status { min-width: 0; overflow-wrap: anywhere; }
+      .macro-library-card { padding: 18px; }
+      .macro-editor-card { padding: 10px; }
     }
 
     /* ── CHAT INTERNO ── */
@@ -1880,27 +2040,40 @@ input[type="date"]::-webkit-calendar-picker-indicator {
           <i data-lucide="palette"></i>
           <span id="theme-toggle-label">Tema</span>
         </button>
-        <button id="export-macros" class="btn" type="button" title="Exporta somente as macros"><i data-lucide="download"></i> Exportar macros</button>
-        <button id="import-macros" class="btn" type="button" title="Importa somente macros"><i data-lucide="upload"></i> Importar macros</button>
-        <button id="download-backup" class="btn accent" type="button" title="Baixa JSON completo (macros + ponto + ocorrências)"><i data-lucide="hard-drive-download"></i> Baixar backup</button>
-        <button id="import-backup" class="btn accent" type="button" title="Abre um JSON de backup e importa com confirmação"><i data-lucide="hard-drive-upload"></i> Importar backup</button>
-        <button id="link-file" class="btn" type="button" title="Vincula um arquivo local para salvar automaticamente"><i data-lucide="link"></i> Vincular auto-save</button>
-        <span id="file-link-status" class="file-badge" data-state="disconnected" role="status" aria-live="polite">Nenhum arquivo vinculado</span>
+        <details class="header-disclosure">
+          <summary class="btn"><i data-lucide="database"></i> Dados e backup</summary>
+          <div class="data-backup-panel">
+            <div class="data-backup-actions">
+              <button id="export-macros" class="btn" type="button" title="Exporta somente as macros"><i data-lucide="download"></i> Exportar macros</button>
+              <button id="import-macros" class="btn" type="button" title="Importa somente macros"><i data-lucide="upload"></i> Importar macros</button>
+              <button id="download-backup" class="btn accent" type="button" title="Baixa JSON completo (macros + ponto + ocorrências)"><i data-lucide="hard-drive-download"></i> Baixar backup</button>
+              <button id="import-backup" class="btn accent" type="button" title="Abre um JSON de backup e importa com confirmação"><i data-lucide="hard-drive-upload"></i> Importar backup</button>
+              <button id="link-file" class="btn" type="button" title="Vincula um arquivo local para salvar automaticamente"><i data-lucide="link"></i> Vincular auto-save</button>
+              <span id="file-link-status" class="file-badge" data-state="disconnected" role="status" aria-live="polite">Nenhum arquivo vinculado</span>
+            </div>
+          </div>
+        </details>
       </div>
     </div>
     <input id="macro-file" type="file" accept="application/json,.json" hidden>
 
-    <div class="sync-zone">
-      <div>
-        <p class="step">1. Arraste o <strong>Assistente</strong> para a Barra de Favoritos. O código fica embutido no favorito.</p>
-        <p>2. No Blip Desk, abra um atendimento e clique no favorito. Após alterar o assistente no painel, arraste o botão de novo para atualizar.</p>
+    <details class="assistant-setup">
+      <summary>
+        <strong>Como configurar o Assistente</strong>
+        <span>Instruções, bookmarklet e sincronização com o Blip</span>
+      </summary>
+      <div class="sync-zone">
+        <div>
+          <p class="step">1. Arraste o <strong>Assistente</strong> para a Barra de Favoritos. O código fica embutido no favorito.</p>
+          <p>2. No Blip Desk, abra um atendimento e clique no favorito. Após alterar o assistente no painel, arraste o botão de novo para atualizar.</p>
+        </div>
+        <div class="sync-zone-actions">
+          <a id="bookmarklet" class="btn bookmarklet" href="#" title="Bookmarklet: código completo embutido no favorito"><i data-lucide="bookmark"></i> 👽 Assistente</a>
+          <button id="sync" class="btn sync-btn"><i data-lucide="clipboard-copy"></i> Copiar macros para o Blip</button>
+        </div>
+        <p id="sync-status" class="sync-status" role="status" aria-live="polite" data-state="pending">Altere ou cadastre suas macros e clique em copiar para atualizar o Blip.</p>
       </div>
-      <div class="sync-zone-actions">
-        <a id="bookmarklet" class="btn bookmarklet" href="#" title="Bookmarklet: código completo embutido no favorito"><i data-lucide="bookmark"></i> 👽 Assistente</a>
-        <button id="sync" class="btn sync-btn"><i data-lucide="clipboard-copy"></i> Copiar macros para o Blip</button>
-      </div>
-      <p id="sync-status" class="sync-status" role="status" aria-live="polite" data-state="pending">Altere ou cadastre suas macros e clique em copiar para atualizar o Blip.</p>
-    </div>
+    </details>
   </header>
 
   <div class="app-layout">
@@ -1916,12 +2089,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
       <!-- PAINEL 1: MACROS -->
       <div id="view-macros" class="view-panel active">
         <div class="workspace-grid">
-          <aside class="card">
-            <div class="section-head">
-              <h2 id="editor-title" class="title">Nova macro</h2>
-              <span id="editing-badge" class="editing-tag" hidden>EDITANDO</span>
-            </div>
-            <form id="macro-form">
+          <aside class="card macro-editor-card">
+            <details id="macro-editor-disclosure" class="macro-editor-disclosure">
+              <summary>
+                <span class="macro-editor-summary-title"><i data-lucide="plus"></i><span id="editor-title" class="title">Nova macro</span></span>
+                <span id="editing-badge" class="editing-tag" hidden>EDITANDO</span>
+              </summary>
+              <form id="macro-form">
               <input id="macro-id" type="hidden">
               <div class="group">
                 <label for="shortcut">Atalho</label>
@@ -1941,14 +2115,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
               <label class="check">
                 <input id="macro-favorite" type="checkbox"> Fixar entre as favoritas do Assistente
               </label>
-              <div style="display:flex; gap:8px; margin-top:16px;">
-                <button class="btn primary" style="flex:1" type="submit">Salvar macro</button>
+              <div class="macro-form-actions">
+                <button class="btn primary macro-form-submit" type="submit">Salvar macro</button>
                 <button id="macro-cancel" class="btn" type="button">Cancelar</button>
               </div>
-            </form>
+              </form>
+            </details>
           </aside>
 
-          <section class="card">
+          <section class="card macro-library-card">
             <div class="section-head">
               <div>
                 <h2 class="title">Macros cadastradas</h2>
@@ -2891,6 +3066,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     $('macro-favorite').checked = false;
     $('editing-badge').hidden = true;
     $('editor-title').textContent = 'Nova macro';
+    $('macro-editor-disclosure').open = false;
   }
 
 function render() {
@@ -3007,6 +3183,7 @@ function render() {
       $('macro-favorite').checked = item.favorite;
       $('editing-badge').hidden = false;
       $('editor-title').textContent = 'Editar macro';
+      $('macro-editor-disclosure').open = true;
       $('shortcut').focus();
     }
     if (action === 'macro-del' && confirm(`Excluir a macro ${item.shortcut}?`)) {
