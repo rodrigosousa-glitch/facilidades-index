@@ -233,26 +233,12 @@
       --toast-color: #ffffff;
     }
 
-    /* ═══ THEME: RGB Chroma Gamer 100% GPU NATIVO ═══ */
-    @property --rgb-hue {
-      syntax: '<angle>';
-      inherits: true;
-      initial-value: 0deg;
-    }
-
-    @keyframes rgb-chroma-spin {
-      0% {
-        --rgb-hue: 0deg;
-      }
-      100% {
-        --rgb-hue: 360deg;
-      }
+    /* ═══ THEME: RGB Chroma (hue via JS — igual em todos os PCs) ═══ */
+    :root {
+      --rgb-hue: 0;
     }
 
     [data-theme="rgb"] {
-      /* Velocidade da animação GPU (10s = suave, 6s = mais rápido) */
-      animation: rgb-chroma-spin 10s linear infinite;
-
       --bg: #050608;
       --bg-elevated: #0b0f14;
       --card: #101317;
@@ -282,7 +268,7 @@
       --sync-zone-bg: hsla(var(--rgb-hue), 100%, 60%, 0.03);
       --sync-zone-border: 1px solid rgba(255, 255, 255, 0.06);
 
-      /* Cores puras HSL sincronizadas em 360 graus */
+      /* --rgb-hue é número 0–360 (sem "deg"), atualizado pelo JS */
       --accent: hsl(var(--rgb-hue), 100%, 60%);
       --accent-dim: hsla(var(--rgb-hue), 100%, 60%, 0.14);
       --accent-border: hsla(var(--rgb-hue), 100%, 60%, 0.38);
@@ -304,11 +290,14 @@
       --toast-bg: hsl(var(--rgb-hue), 100%, 60%);
       --toast-color: #050608;
     }
-        /* ═══ FORÇAR SINCRONIZAÇÃO RGB EM TODOS OS DISPOSITIVOS ═══ */
+
+    /* No RGB: não anima COR (evita botões atrasados uns dos outros) */
     [data-theme="rgb"] *,
     [data-theme="rgb"] *::before,
     [data-theme="rgb"] *::after {
-      transition: transform 0.15s ease, opacity 0.15s ease !important;
+      transition-property: transform, opacity !important;
+      transition-duration: 0.15s !important;
+      transition-timing-function: ease !important;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -558,9 +547,10 @@
     }
 
     .btn.accent:hover {
-      background: rgba(137, 243, 54, 0.2);
-      border-color: rgba(137, 243, 54, 0.4);
-      color: #a8f75a;
+      background: var(--accent-dim);
+      border-color: var(--accent-border);
+      color: var(--accent);
+      filter: brightness(1.15);
     }
 
     .btn svg { width: 15px; height: 15px; stroke-width: 2; flex-shrink: 0; }
@@ -882,8 +872,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     }
 
     .pill:hover {
-      background: rgba(137, 243, 54, 0.22);
-      border-color: rgba(137, 243, 54, 0.4);
+      background: var(--accent-dim);
+      border-color: var(--accent-border);
+      filter: brightness(1.12);
     }
 
     .check {
@@ -1155,8 +1146,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     }
 
     .banco-card .btn-copy:hover {
-      background: rgba(137, 243, 54, 0.22);
-      border-color: rgba(137, 243, 54, 0.4);
+      background: var(--accent-dim);
+      border-color: var(--accent-border);
+      filter: brightness(1.12);
     }
 
     .banco-card .btn-copy.copied {
@@ -4918,6 +4910,31 @@ function render() {
     rgb: 'Tema LSD 🌈'
   };
 
+  // 1 volta completa a cada 10s — controlado por JS (igual em todos os PCs)
+  const RGB_CYCLE_MS = 10000;
+  let rgbRaf = 0;
+  let rgbStart = 0;
+
+  function stopRgbSpin() {
+    if (rgbRaf) {
+      cancelAnimationFrame(rgbRaf);
+      rgbRaf = 0;
+    }
+  }
+
+  function tickRgb(now) {
+    if (!rgbStart) rgbStart = now;
+    const hue = ((now - rgbStart) % RGB_CYCLE_MS) / RGB_CYCLE_MS * 360;
+    root.style.setProperty('--rgb-hue', hue.toFixed(2));
+    rgbRaf = requestAnimationFrame(tickRgb);
+  }
+
+  function startRgbSpin() {
+    stopRgbSpin();
+    rgbStart = 0;
+    rgbRaf = requestAnimationFrame(tickRgb);
+  }
+
   function current() {
     const t = root.getAttribute('data-theme');
     return ORDER.includes(t) ? t : 'lime';
@@ -4928,13 +4945,20 @@ function render() {
     root.setAttribute('data-theme', next);
     try { localStorage.setItem(KEY, next); } catch (e) {}
 
+    if (next === 'rgb') {
+      startRgbSpin();
+    } else {
+      stopRgbSpin();
+      root.style.removeProperty('--rgb-hue');
+    }
+
     const label = document.getElementById('theme-toggle-label');
     const btn = document.getElementById('theme-toggle-btn');
 
     if (label) label.textContent = LABELS[next];
     if (btn) {
       const nextIdx = (ORDER.indexOf(next) + 1) % ORDER.length;
-      btn.title = `Clique para mudar para ${LABELS[ORDER[nextIdx]]}`;
+      btn.title = 'Clique para mudar para ' + LABELS[ORDER[nextIdx]];
       btn.setAttribute('aria-label', btn.title);
     }
 
@@ -4963,6 +4987,14 @@ function render() {
       : null;
     if (!btn) return;
     toggleTheme(e);
+  });
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      stopRgbSpin();
+    } else if (current() === 'rgb') {
+      startRgbSpin();
+    }
   });
 })();
 </script>
