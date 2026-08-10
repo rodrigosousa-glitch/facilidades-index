@@ -4912,7 +4912,7 @@ function render() {
   function startRgbLoop() {
     if (rgbAnimFrame) cancelAnimationFrame(rgbAnimFrame);
     function animate() {
-      hueAngle = (hueAngle + 1.2) % 360;
+      hueAngle = (hueAngle + 0.7) % 360;
       root.style.setProperty('--rgb-hue', hueAngle + 'deg');
       rgbAnimFrame = requestAnimationFrame(animate);
     }
