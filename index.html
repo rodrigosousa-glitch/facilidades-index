@@ -233,14 +233,26 @@
       --toast-color: #ffffff;
     }
 
-    /* ═══ THEME: RGB Chroma Gamer Fluído ═══ */
+    /* ═══ THEME: RGB Chroma Gamer 100% GPU NATIVO ═══ */
     @property --rgb-hue {
       syntax: '<angle>';
       inherits: true;
       initial-value: 0deg;
     }
 
+    @keyframes rgb-chroma-spin {
+      0% {
+        --rgb-hue: 0deg;
+      }
+      100% {
+        --rgb-hue: 360deg;
+      }
+    }
+
     [data-theme="rgb"] {
+      /* Velocidade da animação GPU (10s = suave, 6s = mais rápido) */
+      animation: rgb-chroma-spin 10s linear infinite;
+
       --bg: #050608;
       --bg-elevated: #0b0f14;
       --card: #101317;
@@ -267,29 +279,29 @@
       --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       --header-bg: rgba(16, 19, 23, 0.78);
       --body-bg: var(--bg);
-      --sync-zone-bg: hsla(var(--rgb-hue, 0deg), 100%, 60%, 0.03);
+      --sync-zone-bg: hsla(var(--rgb-hue), 100%, 60%, 0.03);
       --sync-zone-border: 1px solid rgba(255, 255, 255, 0.06);
 
-      /* Transição de Cores HSL Contínua */
-      --accent: hsl(var(--rgb-hue, 0deg), 100%, 60%);
-      --accent-dim: hsla(var(--rgb-hue, 0deg), 100%, 60%, 0.14);
-      --accent-border: hsla(var(--rgb-hue, 0deg), 100%, 60%, 0.38);
-      --accent-glow: hsla(var(--rgb-hue, 0deg), 100%, 60%, 0.28);
+      /* Cores puras HSL sincronizadas em 360 graus */
+      --accent: hsl(var(--rgb-hue), 100%, 60%);
+      --accent-dim: hsla(var(--rgb-hue), 100%, 60%, 0.14);
+      --accent-border: hsla(var(--rgb-hue), 100%, 60%, 0.38);
+      --accent-glow: hsla(var(--rgb-hue), 100%, 60%, 0.28);
       --brand-icon-bg: var(--accent-dim);
       --brand-icon-border: var(--accent-border);
       --brand-icon-color: var(--accent);
       --brand-icon-shadow: 0 0 20px var(--accent-glow);
-      --btn-primary-bg: hsl(var(--rgb-hue, 0deg), 100%, 60%);
+      --btn-primary-bg: hsl(var(--rgb-hue), 100%, 60%);
       --btn-primary-color: #050608;
-      --btn-primary-hover: hsl(var(--rgb-hue, 0deg), 100%, 68%);
+      --btn-primary-hover: hsl(var(--rgb-hue), 100%, 68%);
       --btn-primary-shadow: 0 0 16px var(--accent-glow);
       --nav-active-bg: var(--accent-dim);
-      --nav-active-color: hsl(var(--rgb-hue, 0deg), 100%, 60%);
+      --nav-active-color: hsl(var(--rgb-hue), 100%, 60%);
       --nav-active-shadow: inset 0 0 0 1px var(--accent-border);
       --focus-ring: 0 0 0 3px var(--accent-glow);
-      --focus-border: hsla(var(--rgb-hue, 0deg), 100%, 60%, 0.55);
-      --progress-bar: hsl(var(--rgb-hue, 0deg), 100%, 60%);
-      --toast-bg: hsl(var(--rgb-hue, 0deg), 100%, 60%);
+      --focus-border: hsla(var(--rgb-hue), 100%, 60%, 0.55);
+      --progress-bar: hsl(var(--rgb-hue), 100%, 60%);
+      --toast-bg: hsl(var(--rgb-hue), 100%, 60%);
       --toast-color: #050608;
     }
         /* ═══ FORÇAR SINCRONIZAÇÃO RGB EM TODOS OS DISPOSITIVOS ═══ */
@@ -4891,7 +4903,7 @@ function render() {
 })();
 </script>
 
-<!-- SCRIPT DE TEMAS (COM MOTOR RGB FLUÍDO 60FPS) -->
+<!-- SCRIPT DE TEMAS -->
 <script>
 (() => {
   'use strict';
@@ -4906,27 +4918,6 @@ function render() {
     rgb: 'Tema LSD 🌈'
   };
 
-  let rgbAnimFrame = null;
-  let hueAngle = 0;
-
-  function startRgbLoop() {
-    if (rgbAnimFrame) cancelAnimationFrame(rgbAnimFrame);
-    function animate() {
-      hueAngle = (hueAngle + 0.7) % 360;
-      root.style.setProperty('--rgb-hue', hueAngle + 'deg');
-      rgbAnimFrame = requestAnimationFrame(animate);
-    }
-    rgbAnimFrame = requestAnimationFrame(animate);
-  }
-
-  function stopRgbLoop() {
-    if (rgbAnimFrame) {
-      cancelAnimationFrame(rgbAnimFrame);
-      rgbAnimFrame = null;
-    }
-    root.style.removeProperty('--rgb-hue');
-  }
-
   function current() {
     const t = root.getAttribute('data-theme');
     return ORDER.includes(t) ? t : 'lime';
@@ -4936,12 +4927,6 @@ function render() {
     const next = ORDER.includes(theme) ? theme : 'lime';
     root.setAttribute('data-theme', next);
     try { localStorage.setItem(KEY, next); } catch (e) {}
-
-    if (next === 'rgb') {
-      startRgbLoop();
-    } else {
-      stopRgbLoop();
-    }
 
     const label = document.getElementById('theme-toggle-label');
     const btn = document.getElementById('theme-toggle-btn');
