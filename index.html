@@ -292,6 +292,12 @@
       --toast-bg: hsl(var(--rgb-hue, 0deg), 100%, 60%);
       --toast-color: #050608;
     }
+        /* ═══ FORÇAR SINCRONIZAÇÃO RGB EM TODOS OS DISPOSITIVOS ═══ */
+    [data-theme="rgb"] *,
+    [data-theme="rgb"] *::before,
+    [data-theme="rgb"] *::after {
+      transition: transform 0.15s ease, opacity 0.15s ease !important;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
