@@ -4910,7 +4910,6 @@ function render() {
     rgb: 'Tema LSD 🌈'
   };
 
-  // 1 volta completa a cada 10s — controlado por JS (igual em todos os PCs)
   const RGB_CYCLE_MS = 10000;
   let rgbRaf = 0;
   let rgbStart = 0;
@@ -4922,10 +4921,51 @@ function render() {
     }
   }
 
+  function paintRgb(hue) {
+    const h = (hue % 360).toFixed(2);
+    const solid = 'hsl(' + h + ', 100%, 60%)';
+    const solidHi = 'hsl(' + h + ', 100%, 68%)';
+    const dim = 'hsla(' + h + ', 100%, 60%, 0.14)';
+    const border = 'hsla(' + h + ', 100%, 60%, 0.38)';
+    const glow = 'hsla(' + h + ', 100%, 60%, 0.28)';
+
+    root.style.setProperty('--rgb-hue', h);
+    root.style.setProperty('--accent', solid);
+    root.style.setProperty('--accent-dim', dim);
+    root.style.setProperty('--accent-border', border);
+    root.style.setProperty('--accent-glow', glow);
+    root.style.setProperty('--btn-primary-bg', solid);
+    root.style.setProperty('--btn-primary-hover', solidHi);
+    root.style.setProperty('--btn-primary-shadow', '0 0 16px ' + glow);
+    root.style.setProperty('--nav-active-bg', dim);
+    root.style.setProperty('--nav-active-color', solid);
+    root.style.setProperty('--nav-active-shadow', 'inset 0 0 0 1px ' + border);
+    root.style.setProperty('--focus-ring', '0 0 0 3px ' + glow);
+    root.style.setProperty('--focus-border', 'hsla(' + h + ', 100%, 60%, 0.55)');
+    root.style.setProperty('--progress-bar', solid);
+    root.style.setProperty('--toast-bg', solid);
+    root.style.setProperty('--brand-icon-bg', dim);
+    root.style.setProperty('--brand-icon-border', border);
+    root.style.setProperty('--brand-icon-color', solid);
+    root.style.setProperty('--brand-icon-shadow', '0 0 20px ' + glow);
+    root.style.setProperty('--sync-zone-bg', 'hsla(' + h + ', 100%, 60%, 0.03)');
+  }
+
+  function clearRgbPaint() {
+    [
+      '--rgb-hue', '--accent', '--accent-dim', '--accent-border', '--accent-glow',
+      '--btn-primary-bg', '--btn-primary-hover', '--btn-primary-shadow',
+      '--nav-active-bg', '--nav-active-color', '--nav-active-shadow',
+      '--focus-ring', '--focus-border', '--progress-bar', '--toast-bg',
+      '--brand-icon-bg', '--brand-icon-border', '--brand-icon-color', '--brand-icon-shadow',
+      '--sync-zone-bg'
+    ].forEach(function (k) { root.style.removeProperty(k); });
+  }
+
   function tickRgb(now) {
     if (!rgbStart) rgbStart = now;
     const hue = ((now - rgbStart) % RGB_CYCLE_MS) / RGB_CYCLE_MS * 360;
-    root.style.setProperty('--rgb-hue', hue.toFixed(2));
+    paintRgb(hue);
     rgbRaf = requestAnimationFrame(tickRgb);
   }
 
@@ -4949,7 +4989,7 @@ function render() {
       startRgbSpin();
     } else {
       stopRgbSpin();
-      root.style.removeProperty('--rgb-hue');
+      clearRgbPaint();
     }
 
     const label = document.getElementById('theme-toggle-label');
