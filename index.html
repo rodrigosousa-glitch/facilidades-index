@@ -2244,6 +2244,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     [data-theme="rgb"] .brand-icon {
       animation: rf-rgb-et-icon 4s linear infinite !important;
     }
+    /* ═══ SINCRONIZAR CORES DO CHAT INTERNO NO TEMA LSD ═══ */
+    [data-theme="rgb"] .rf-chat-tab[data-active="true"],
+    [data-theme="rgb"] .rf-chat-msg.mine {
+      animation: rf-rgb-nav 4s linear infinite !important;
+      border: none !important;
+    }
+
+    [data-theme="rgb"] .rf-chat-msg-author,
+    [data-theme="rgb"] .rf-chat-head-title strong {
+      animation: rf-rgb-border 4s linear infinite !important;
+    }
   </style>
 </head>
 <body>
