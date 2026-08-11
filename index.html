@@ -1763,6 +1763,220 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
     .ponto-record-actions { display: flex; gap: 4px; flex-shrink: 0; }
 
+    /* ── PONTO INTERNAL TABS + EXTRAS PAGAS ── */
+    .ponto-tabs {
+      display: flex;
+      gap: 4px;
+      margin: 14px 0 12px;
+      padding: 4px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .ponto-tab {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 10px;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--muted);
+      font: 600 12px var(--font);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .ponto-tab:hover {
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .ponto-tab.active {
+      background: var(--nav-active-bg);
+      color: var(--nav-active-color);
+      box-shadow: var(--nav-active-shadow);
+    }
+    .ponto-tab-panel { display: none; }
+    .ponto-tab-panel.active { display: block; }
+
+    .extras-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .extras-total {
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .extras-total span {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 650;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+    .extras-total strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+    .extras-form .group { margin-bottom: 12px; }
+    .extras-type-pills {
+      display: flex;
+      gap: 6px;
+    }
+    .extras-type-pills label {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: none;
+      letter-spacing: 0;
+      margin: 0;
+      transition: all 0.12s ease;
+    }
+    .extras-type-pills label:hover {
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+    .extras-type-pills input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .extras-type-pills label:has(input:checked),
+    .extras-type-pills label.is-active {
+      background: var(--accent-dim);
+      border-color: var(--accent-border);
+      color: var(--accent);
+      box-shadow: inset 0 0 0 1px var(--accent-border);
+    }
+    .extras-preview {
+      margin: 8px 0 12px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 500;
+      text-align: center;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .extras-preview strong { color: var(--accent); }
+    .extras-settings-btn {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+    }
+    .extras-settings {
+      margin-bottom: 14px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg-elevated);
+    }
+    .extras-settings[hidden] { display: none !important; }
+    .extras-settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .extras-settings .hint { margin-top: 8px; }
+    .extras-cycle {
+      margin: 14px 0 8px;
+      padding: 6px 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 10.5px;
+      font-weight: 650;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      border-top: 1px dashed var(--border);
+      border-bottom: 1px dashed var(--border);
+    }
+    .extras-cycle strong {
+      color: var(--accent);
+      font-weight: 700;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .extras-record {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 0;
+      border-top: 1px solid var(--border);
+    }
+    .extras-record:first-of-type { border-top: 0; }
+    .extras-record-copy strong {
+      font-size: 12px;
+      display: block;
+      color: var(--text);
+      font-weight: 550;
+    }
+    .extras-record-copy span {
+      color: var(--muted);
+      font-size: 11px;
+      display: block;
+      margin-top: 1px;
+    }
+    .extras-record-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .extras-empty {
+      padding: 16px 8px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .extras-list {
+      max-height: 220px;
+      overflow-y: auto;
+      margin-top: 8px;
+      border-top: 1px solid var(--border);
+      padding-top: 4px;
+    }
+    .extras-list::-webkit-scrollbar { width: 4px; }
+    .extras-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+    }
+
     /* ── TOAST ── */
     #toast {
       position: fixed;
@@ -2255,6 +2469,54 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     [data-theme="rgb"] .rf-chat-head-title strong {
       animation: rf-rgb-border 4s linear infinite !important;
     }
+
+    /* ═══ RGB: abas e extras pagas ═══ */
+    @keyframes rf-rgb-extras-box {
+      0%   { border-color: #ef4444; box-shadow: 0 0 16px rgba(239, 68, 68, 0.35), inset 0 0 0 1px rgba(239, 68, 68, 0.25); }
+      16%  { border-color: #f97316; box-shadow: 0 0 16px rgba(249, 115, 22, 0.35), inset 0 0 0 1px rgba(249, 115, 22, 0.25); }
+      33%  { border-color: #eab308; box-shadow: 0 0 16px rgba(234, 179, 8, 0.35), inset 0 0 0 1px rgba(234, 179, 8, 0.25); }
+      50%  { border-color: #89f336; box-shadow: 0 0 16px rgba(137, 243, 54, 0.35), inset 0 0 0 1px rgba(137, 243, 54, 0.25); }
+      66%  { border-color: #22d3ee; box-shadow: 0 0 16px rgba(34, 211, 238, 0.35), inset 0 0 0 1px rgba(34, 211, 238, 0.25); }
+      83%  { border-color: #8b5cf6; box-shadow: 0 0 16px rgba(139, 92, 246, 0.35), inset 0 0 0 1px rgba(139, 92, 246, 0.25); }
+      100% { border-color: #ec4899; box-shadow: 0 0 16px rgba(236, 72, 153, 0.35), inset 0 0 0 1px rgba(236, 72, 153, 0.25); }
+    }
+
+    @keyframes rf-rgb-extras-text {
+      0%   { color: #ef4444; }
+      16%  { color: #f97316; }
+      33%  { color: #eab308; }
+      50%  { color: #89f336; }
+      66%  { color: #22d3ee; }
+      83%  { color: #8b5cf6; }
+      100% { color: #ec4899; }
+    }
+
+    [data-theme="rgb"] .ponto-tab.active {
+      animation: rf-rgb-nav 4s linear infinite !important;
+      border: none !important;
+    }
+
+    [data-theme="rgb"] .extras-type-pills label:has(input:checked),
+    [data-theme="rgb"] .extras-type-pills label.is-active {
+      animation: rf-rgb-nav 4s linear infinite !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    [data-theme="rgb"] .extras-total {
+      animation: rf-rgb-extras-box 4s linear infinite !important;
+      background: rgba(255, 255, 255, 0.03) !important;
+    }
+
+    [data-theme="rgb"] .extras-total strong {
+      animation: rf-rgb-extras-text 4s linear infinite !important;
+    }
+
+    [data-theme="rgb"] .extras-preview strong,
+    [data-theme="rgb"] .extras-record-value,
+    [data-theme="rgb"] .extras-cycle strong {
+      animation: rf-rgb-extras-text 4s linear infinite !important;
+    }
   </style>
 </head>
 <body>
@@ -2705,75 +2967,143 @@ input[type="date"]::-webkit-calendar-picker-indicator {
           <span id="ponto-state" class="ponto-state" data-state="closed">Fora do turno</span>
         </div>
 
-        <div class="ponto-actions">
-          <button id="ponto-entry" class="btn primary" type="button">Registrar entrada</button>
-          <button id="ponto-exit" class="btn ghost" type="button">Registrar saída</button>
-          <button id="ponto-adjust-toggle" class="btn accent" type="button">Ajustar horas</button>
+        <div class="ponto-tabs" role="tablist" aria-label="Modo do ponto">
+          <button type="button" class="ponto-tab active" data-ponto-tab="banco" role="tab" aria-selected="true">🏢 Banco Sábado</button>
+          <button type="button" class="ponto-tab" data-ponto-tab="extras" role="tab" aria-selected="false">💰 Extras Pagas</button>
         </div>
-        
-        <p id="ponto-live" class="ponto-live" role="status" aria-live="polite">Nenhuma entrada aberta hoje.</p>
 
-        <div class="ponto-metrics">
-          <div class="ponto-metric">
-            <span>Hoje</span>
-            <strong id="ponto-today">00:00</strong>
+        <div id="ponto-panel-banco" class="ponto-tab-panel active" role="tabpanel">
+          <div class="ponto-actions">
+            <button id="ponto-entry" class="btn primary" type="button">Registrar entrada</button>
+            <button id="ponto-exit" class="btn ghost" type="button">Registrar saída</button>
+            <button id="ponto-adjust-toggle" class="btn accent" type="button">Ajustar horas</button>
           </div>
-          <div class="ponto-metric">
-            <span>Semana</span>
-            <strong id="ponto-week">00:00</strong>
+
+          <p id="ponto-live" class="ponto-live" role="status" aria-live="polite">Nenhuma entrada aberta hoje.</p>
+
+          <div class="ponto-metrics">
+            <div class="ponto-metric">
+              <span>Hoje</span>
+              <strong id="ponto-today">00:00</strong>
+            </div>
+            <div class="ponto-metric">
+              <span>Semana</span>
+              <strong id="ponto-week">00:00</strong>
+            </div>
+            <div class="ponto-metric">
+              <span>Saldo</span>
+              <strong id="ponto-balance">−04:00</strong>
+            </div>
           </div>
-          <div class="ponto-metric">
-            <span>Saldo</span>
-            <strong id="ponto-balance">−04:00</strong>
+
+          <div class="ponto-progress-label">
+            <span>Progresso semanal</span>
+            <span id="ponto-progress-text">00:00 de 04:00</span>
           </div>
+          <div class="ponto-progress">
+            <span id="ponto-progress-bar" class="ponto-progress-bar"></span>
+          </div>
+
+          <p id="ponto-goal" class="ponto-goal" data-ready="false">Faltam 04:00 para a folga no sábado.</p>
+
+          <details class="ponto-adjust" id="ponto-adjust-panel">
+            <summary>Ajustar horas manualmente</summary>
+            <div class="ponto-adjust-body">
+              <form id="ponto-adjust-form">
+                <input id="ponto-adjust-id" type="hidden">
+                <div class="ponto-fields">
+                  <div>
+                    <label for="ponto-adjust-date">Data</label>
+                    <input id="ponto-adjust-date" type="date" required>
+                  </div>
+                  <div>
+                    <label for="ponto-adjust-hours">Duração (HH:MM)</label>
+                    <input id="ponto-adjust-hours" type="text" inputmode="numeric" maxlength="5" pattern="[0-9]{1,2}:[0-5][0-9]" placeholder="Ex.: 08:15" required>
+                  </div>
+                  <div>
+                    <label for="ponto-adjust-direction">Operação</label>
+                    <select id="ponto-adjust-direction">
+                      <option value="add">Adicionar horas</option>
+                      <option value="remove">Remover horas</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="ponto-adjust-note">Motivo</label>
+                    <input id="ponto-adjust-note" type="text" maxlength="120" placeholder="Ex.: Ajuste de segunda">
+                  </div>
+                </div>
+                <div style="display:flex; gap:6px; margin-top:12px;">
+                  <button id="ponto-adjust-submit" class="btn primary small" type="submit">Salvar ajuste</button>
+                  <button id="ponto-adjust-cancel" class="btn small hidden" type="button">Cancelar</button>
+                </div>
+                <p class="hint">Formato HH:MM (ex: 01:30). Altera imediatamente o saldo semanal.</p>
+              </form>
+            </div>
+          </details>
+
+          <div id="ponto-records" class="ponto-records"></div>
         </div>
 
-        <div class="ponto-progress-label">
-          <span>Progresso semanal</span>
-          <span id="ponto-progress-text">00:00 de 04:00</span>
-        </div>
-        <div class="ponto-progress">
-          <span id="ponto-progress-bar" class="ponto-progress-bar"></span>
-        </div>
+        <div id="ponto-panel-extras" class="ponto-tab-panel" role="tabpanel">
+          <div class="extras-head">
+            <div>
+              <div class="title" style="font-size:13px;">Extras pagas (R$)</div>
+              <div class="hint">Acúmulo por ciclo 26→25</div>
+            </div>
+            <button type="button" id="extras-settings-toggle" class="btn ghost extras-settings-btn" title="Configurar valores/hora" aria-label="Configurar valores por hora">⚙️</button>
+          </div>
 
-        <p id="ponto-goal" class="ponto-goal" data-ready="false">Faltam 04:00 para a folga no sábado.</p>
-
-        <details class="ponto-adjust" id="ponto-adjust-panel">
-          <summary>Ajustar horas manualmente</summary>
-          <div class="ponto-adjust-body">
-            <form id="ponto-adjust-form">
-              <input id="ponto-adjust-id" type="hidden">
-              <div class="ponto-fields">
-                <div>
-                  <label for="ponto-adjust-date">Data</label>
-                  <input id="ponto-adjust-date" type="date" required>
-                </div>
-                <div>
-                  <label for="ponto-adjust-hours">Duração (HH:MM)</label>
-                  <input id="ponto-adjust-hours" type="text" inputmode="numeric" maxlength="5" pattern="[0-9]{1,2}:[0-5][0-9]" placeholder="Ex.: 08:15" required>
-                </div>
-                <div>
-                  <label for="ponto-adjust-direction">Operação</label>
-                  <select id="ponto-adjust-direction">
-                    <option value="add">Adicionar horas</option>
-                    <option value="remove">Remover horas</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="ponto-adjust-note">Motivo</label>
-                  <input id="ponto-adjust-note" type="text" maxlength="120" placeholder="Ex.: Ajuste de segunda">
-                </div>
+          <div id="extras-settings" class="extras-settings" hidden>
+            <div class="extras-settings-grid">
+              <div>
+                <label for="extras-rate-60">60% (seg–sáb) R$/h</label>
+                <input id="extras-rate-60" type="text" inputmode="decimal" placeholder="16,70">
               </div>
-              <div style="display:flex; gap:6px; margin-top:12px;">
-                <button id="ponto-adjust-submit" class="btn primary small" type="submit">Salvar ajuste</button>
-                <button id="ponto-adjust-cancel" class="btn small hidden" type="button">Cancelar</button>
+              <div>
+                <label for="extras-rate-100">100% (dom/fer) R$/h</label>
+                <input id="extras-rate-100" type="text" inputmode="decimal" placeholder="20,90">
               </div>
-              <p class="hint">Formato HH:MM (ex: 01:30). Altera imediatamente o saldo semanal.</p>
-            </form>
+            </div>
+            <p class="hint">Base de referência: R$ 2.300,00. Só o valor da hora extra entra no total.</p>
+            <div style="display:flex; gap:6px; margin-top:10px;">
+              <button type="button" id="extras-settings-save" class="btn primary small">Salvar taxas</button>
+              <button type="button" id="extras-settings-reset" class="btn small ghost">Padrão</button>
+            </div>
           </div>
-        </details>
 
-        <div id="ponto-records" class="ponto-records"></div>
+          <div class="extras-total">
+            <span>Total acumulado (extras)</span>
+            <strong id="extras-total-value">R$ 0,00</strong>
+          </div>
+
+          <form id="extras-form" class="extras-form">
+            <div class="group">
+              <label for="extras-date">Data</label>
+              <input id="extras-date" type="date" required>
+            </div>
+            <div class="group">
+              <label for="extras-hours">Duração (HH:MM)</label>
+              <input id="extras-hours" type="text" inputmode="numeric" maxlength="5" pattern="[0-9]{1,2}:[0-5][0-9]" placeholder="Ex.: 01:04" required>
+            </div>
+            <div class="group">
+              <label>Tipo</label>
+              <div class="extras-type-pills">
+                <label class="is-active">
+                  <input type="radio" name="extras-type" value="60" checked>
+                  60% (seg–sáb)
+                </label>
+                <label>
+                  <input type="radio" name="extras-type" value="100">
+                  100% (dom/fer)
+                </label>
+              </div>
+            </div>
+            <div id="extras-preview" class="extras-preview">Informe a duração para ver o valor</div>
+            <button type="submit" class="btn primary" style="width:100%;">Registrar Extra Paga</button>
+          </form>
+
+          <div id="extras-list" class="extras-list"></div>
+        </div>
       </section>
     </aside>
   </div>
@@ -4052,6 +4382,328 @@ function render() {
   resetForm();
   update();
   setInterval(update, 60000);
+})();
+</script>
+
+<!-- SCRIPT 2b: EXTRAS PAGAS (R$) -->
+<script>
+(() => {
+  'use strict';
+  const STORAGE_KEY = 'rf_extras_pagas_v1';
+  const RATES_KEY = 'rf_extras_rates_v1';
+  const DEFAULT_RATES = { rate60: 16.70, rate100: 20.90 };
+  const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  const $ = (id) => document.getElementById(id);
+  const brl = (n) => (Number(n) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  function parseMoneyBR(raw) {
+    if (raw == null) return null;
+    let s = String(raw).trim().replace(/r\$/ig, '').replace(/\s/g, '');
+    if (!s) return null;
+    if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+    const n = parseFloat(s);
+    return isNaN(n) || n < 0 ? null : n;
+  }
+
+  function parseDuration(val) {
+    const match = /^(\d{1,2}):([0-5]\d)$/.exec(String(val || '').trim());
+    if (!match) return null;
+    const h = Number(match[1]), m = Number(match[2]);
+    const tot = h * 60 + m;
+    return tot < 1 || tot > 24 * 60 ? null : tot;
+  }
+
+  function formatDuration(mins) {
+    const m = Math.round(Number(mins) || 0);
+    return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+  }
+
+  function localDate(val = new Date()) {
+    const d = new Date(val);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function formatDateBR(isoDate) {
+    const [y, m, d] = isoDate.split('-');
+    return d + '/' + m + '/' + y;
+  }
+
+  function uid() {
+    return (globalThis.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : 'ex-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+  }
+
+  function cycleKey(isoDate) {
+    const [ys, ms, ds] = isoDate.split('-').map(Number);
+    let y = ys, m = ms;
+    if (ds >= 26) {
+      m += 1;
+      if (m > 12) { m = 1; y += 1; }
+    }
+    return y + '-' + String(m).padStart(2, '0');
+  }
+
+  function cycleLabel(key) {
+    const [ys, ms] = key.split('-').map(Number);
+    const monthName = MONTHS_PT[ms - 1];
+    let py = ys, pm = ms - 1;
+    if (pm < 1) { pm = 12; py -= 1; }
+    const from = '26/' + String(pm).padStart(2, '0');
+    const to = '25/' + String(ms).padStart(2, '0');
+    const yearHint = ys !== new Date().getFullYear() ? ' ' + ys : '';
+    return 'Ciclo ' + monthName + yearHint + ' (' + from + ' a ' + to + ')';
+  }
+
+  function loadRates() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(RATES_KEY));
+      if (raw && typeof raw.rate60 === 'number' && typeof raw.rate100 === 'number') {
+        return { rate60: raw.rate60, rate100: raw.rate100 };
+      }
+    } catch (e) {}
+    return { ...DEFAULT_RATES };
+  }
+
+  function saveRates(rates) {
+    try {
+      localStorage.setItem(RATES_KEY, JSON.stringify(rates));
+      if (window.RFStorage) window.RFStorage.notifyChange();
+    } catch (e) {}
+  }
+
+  function loadEntries() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      return Array.isArray(raw) ? raw : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveEntries(list) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      if (window.RFStorage) window.RFStorage.notifyChange();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  let rates = loadRates();
+  let entries = loadEntries();
+
+  function calcValue(minutes, type) {
+    const hours = minutes / 60;
+    const rate = type === '100' ? rates.rate100 : rates.rate60;
+    return Math.round(hours * rate * 100) / 100;
+  }
+
+  function syncTypePills() {
+    document.querySelectorAll('.extras-type-pills label').forEach((lab) => {
+      const input = lab.querySelector('input');
+      lab.classList.toggle('is-active', !!(input && input.checked));
+    });
+  }
+
+  function updatePreview() {
+    const mins = parseDuration($('extras-hours').value);
+    const typeEl = document.querySelector('input[name="extras-type"]:checked');
+    const type = typeEl ? typeEl.value : '60';
+    const prev = $('extras-preview');
+    if (mins == null) {
+      prev.innerHTML = 'Informe a duração para ver o valor';
+      return;
+    }
+    const val = calcValue(mins, type);
+    const rate = type === '100' ? rates.rate100 : rates.rate60;
+    prev.innerHTML =
+      formatDuration(mins) +
+      ' × R$ ' +
+      rate.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) +
+      '/h = <strong>' + brl(val) + '</strong>';
+  }
+
+  function totalAll() {
+    return entries.reduce((s, e) => s + (Number(e.value) || 0), 0);
+  }
+
+  function renderList() {
+    const list = $('extras-list');
+    const totalEl = $('extras-total-value');
+    totalEl.textContent = brl(totalAll());
+
+    if (!entries.length) {
+      list.innerHTML = '<div class="extras-empty">Nenhuma extra paga registrada.</div>';
+      return;
+    }
+
+    const sorted = entries.slice().sort((a, b) => {
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+      return (b.createdAt || '').localeCompare(a.createdAt || '');
+    });
+
+    const groups = new Map();
+    sorted.forEach((e) => {
+      const k = cycleKey(e.date);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(e);
+    });
+
+    let html = '';
+    groups.forEach((items, key) => {
+      const cycleTotal = items.reduce((s, e) => s + (Number(e.value) || 0), 0);
+      html +=
+        '<div class="extras-cycle">' +
+        cycleLabel(key) +
+        ' — Total: <strong>' +
+        brl(cycleTotal) +
+        '</strong></div>';
+      items.forEach((e) => {
+        const typeLabel = e.type === '100' ? '100%' : '60%';
+        html +=
+          '<div class="extras-record">' +
+          '<div class="extras-record-copy">' +
+          '<strong>' +
+          formatDateBR(e.date) +
+          ' · ' +
+          formatDuration(e.minutes) +
+          ' · ' +
+          typeLabel +
+          '</strong>' +
+          '<span>Extra paga</span>' +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:8px;">' +
+          '<span class="extras-record-value">' +
+          brl(e.value) +
+          '</span>' +
+          '<button type="button" class="btn small danger" data-extras-del="' +
+          e.id +
+          '">Excluir</button>' +
+          '</div>' +
+          '</div>';
+      });
+    });
+    list.innerHTML = html;
+  }
+
+  function autoSelectTypeForDate() {
+    const dateVal = $('extras-date').value;
+    if (!dateVal) return;
+    const d = new Date(dateVal + 'T12:00:00');
+    if (d.getDay() === 0) {
+      const r100 = document.querySelector('input[name="extras-type"][value="100"]');
+      if (r100) r100.checked = true;
+    }
+    syncTypePills();
+    updatePreview();
+  }
+
+  function fillRatesInputs() {
+    $('extras-rate-60').value = rates.rate60.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    $('extras-rate-100').value = rates.rate100.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  document.querySelectorAll('.ponto-tab').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tab = btn.getAttribute('data-ponto-tab');
+      document.querySelectorAll('.ponto-tab').forEach((b) => {
+        const on = b === btn;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      document.querySelectorAll('.ponto-tab-panel').forEach((p) => {
+        p.classList.toggle('active', p.id === 'ponto-panel-' + tab);
+      });
+    });
+  });
+
+  $('extras-settings-toggle').addEventListener('click', () => {
+    const panel = $('extras-settings');
+    panel.hidden = !panel.hidden;
+    if (!panel.hidden) fillRatesInputs();
+  });
+
+  $('extras-settings-save').addEventListener('click', () => {
+    const r60 = parseMoneyBR($('extras-rate-60').value);
+    const r100 = parseMoneyBR($('extras-rate-100').value);
+    if (r60 == null || r100 == null || r60 <= 0 || r100 <= 0) {
+      alert('Informe valores válidos para as taxas (ex: 16,70).');
+      return;
+    }
+    rates = { rate60: r60, rate100: r100 };
+    saveRates(rates);
+    $('extras-settings').hidden = true;
+    updatePreview();
+  });
+
+  $('extras-settings-reset').addEventListener('click', () => {
+    rates = { ...DEFAULT_RATES };
+    saveRates(rates);
+    fillRatesInputs();
+    updatePreview();
+  });
+
+  $('extras-date').value = localDate();
+  $('extras-date').addEventListener('change', autoSelectTypeForDate);
+  $('extras-hours').addEventListener('input', updatePreview);
+  document.querySelectorAll('input[name="extras-type"]').forEach((r) => {
+    r.addEventListener('change', () => {
+      syncTypePills();
+      updatePreview();
+    });
+  });
+
+  $('extras-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const date = $('extras-date').value;
+    const mins = parseDuration($('extras-hours').value);
+    const typeEl = document.querySelector('input[name="extras-type"]:checked');
+    const type = typeEl ? typeEl.value : '60';
+    if (!date || mins == null) {
+      alert('Informe a data e a duração no formato HH:MM (ex: 01:04).');
+      return;
+    }
+    const value = calcValue(mins, type);
+    const entry = {
+      id: uid(),
+      date,
+      minutes: mins,
+      type,
+      value,
+      rate: type === '100' ? rates.rate100 : rates.rate60,
+      createdAt: new Date().toISOString()
+    };
+    entries.push(entry);
+    if (saveEntries(entries)) {
+      $('extras-hours').value = '';
+      updatePreview();
+      renderList();
+    }
+  });
+
+  $('extras-list').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-extras-del]');
+    if (!btn) return;
+    const id = btn.getAttribute('data-extras-del');
+    if (!confirm('Excluir este registro de extra paga?')) return;
+    entries = entries.filter((x) => x.id !== id);
+    saveEntries(entries);
+    renderList();
+  });
+
+  fillRatesInputs();
+  autoSelectTypeForDate();
+  updatePreview();
+  renderList();
 })();
 </script>
 
