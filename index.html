@@ -234,24 +234,83 @@
     }
 
     /* ═══ THEME: RGB simples (CSS puro) ═══ */
-    @keyframes rf-rgb-shift {
-      0%   { background-color: #ef4444; color: #0a0a0a; box-shadow: 0 0 16px rgba(239, 68, 68, 0.35); }
-      16%  { background-color: #f97316; color: #0a0a0a; box-shadow: 0 0 16px rgba(249, 115, 22, 0.35); }
-      33%  { background-color: #eab308; color: #0a0a0a; box-shadow: 0 0 16px rgba(234, 179, 8, 0.35); }
-      50%  { background-color: #89f336; color: #0a0a0a; box-shadow: 0 0 16px rgba(137, 243, 54, 0.35); }
-      66%  { background-color: #22d3ee; color: #0a0a0a; box-shadow: 0 0 16px rgba(34, 211, 238, 0.35); }
-      83%  { background-color: #8b5cf6; color: #ffffff; box-shadow: 0 0 16px rgba(139, 92, 246, 0.35); }
-      100% { background-color: #ec4899; color: #0a0a0a; box-shadow: 0 0 16px rgba(236, 72, 153, 0.35); }
+    /* RGB sincronizado: uma única animação no root → todos os elementos usam as mesmas variáveis */
+    @property --rgb-c {
+      syntax: '<color>';
+      inherits: true;
+      initial-value: #ef4444;
+    }
+    @property --rgb-on {
+      syntax: '<color>';
+      inherits: true;
+      initial-value: #0a0a0a;
+    }
+    @property --rgb-dim {
+      syntax: '<color>';
+      inherits: true;
+      initial-value: rgba(239, 68, 68, 0.12);
+    }
+    @property --rgb-dim25 {
+      syntax: '<color>';
+      inherits: true;
+      initial-value: rgba(239, 68, 68, 0.25);
+    }
+    @property --rgb-glow {
+      syntax: '<color>';
+      inherits: true;
+      initial-value: rgba(239, 68, 68, 0.35);
     }
 
-    @keyframes rf-rgb-border {
-      0%   { border-color: #ef4444; color: #ef4444; }
-      16%  { border-color: #f97316; color: #f97316; }
-      33%  { border-color: #eab308; color: #eab308; }
-      50%  { border-color: #89f336; color: #89f336; }
-      66%  { border-color: #22d3ee; color: #22d3ee; }
-      83%  { border-color: #8b5cf6; color: #8b5cf6; }
-      100% { border-color: #ec4899; color: #ec4899; }
+    @keyframes rf-rgb-sync {
+      0% {
+        --rgb-c: #ef4444;
+        --rgb-on: #0a0a0a;
+        --rgb-dim: rgba(239, 68, 68, 0.12);
+        --rgb-dim25: rgba(239, 68, 68, 0.25);
+        --rgb-glow: rgba(239, 68, 68, 0.35);
+      }
+      16% {
+        --rgb-c: #f97316;
+        --rgb-on: #0a0a0a;
+        --rgb-dim: rgba(249, 115, 22, 0.12);
+        --rgb-dim25: rgba(249, 115, 22, 0.25);
+        --rgb-glow: rgba(249, 115, 22, 0.35);
+      }
+      33% {
+        --rgb-c: #eab308;
+        --rgb-on: #0a0a0a;
+        --rgb-dim: rgba(234, 179, 8, 0.12);
+        --rgb-dim25: rgba(234, 179, 8, 0.25);
+        --rgb-glow: rgba(234, 179, 8, 0.35);
+      }
+      50% {
+        --rgb-c: #89f336;
+        --rgb-on: #0a0a0a;
+        --rgb-dim: rgba(137, 243, 54, 0.12);
+        --rgb-dim25: rgba(137, 243, 54, 0.25);
+        --rgb-glow: rgba(137, 243, 54, 0.35);
+      }
+      66% {
+        --rgb-c: #22d3ee;
+        --rgb-on: #0a0a0a;
+        --rgb-dim: rgba(34, 211, 238, 0.12);
+        --rgb-dim25: rgba(34, 211, 238, 0.25);
+        --rgb-glow: rgba(34, 211, 238, 0.35);
+      }
+      83% {
+        --rgb-c: #8b5cf6;
+        --rgb-on: #ffffff;
+        --rgb-dim: rgba(139, 92, 246, 0.12);
+        --rgb-dim25: rgba(139, 92, 246, 0.25);
+        --rgb-glow: rgba(139, 92, 246, 0.35);
+      }
+      100% {
+        --rgb-c: #ec4899;
+        --rgb-on: #0a0a0a;
+        --rgb-dim: rgba(236, 72, 153, 0.12);
+        --rgb-dim25: rgba(236, 72, 153, 0.25);
+        --rgb-glow: rgba(236, 72, 153, 0.35);
+      }
     }
 
     [data-theme="rgb"] {
@@ -266,10 +325,10 @@
       --text-secondary: #94a3b8;
       --muted: #64748b;
       --muted-dim: #475569;
-      --accent: #89f336;
-      --accent-dim: rgba(137, 243, 54, 0.12);
-      --accent-border: rgba(137, 243, 54, 0.28);
-      --accent-glow: rgba(137, 243, 54, 0.18);
+      --accent: var(--rgb-c);
+      --accent-dim: var(--rgb-dim);
+      --accent-border: var(--rgb-c);
+      --accent-glow: var(--rgb-glow);
       --green: #34d399;
       --green-dim: rgba(52, 211, 153, 0.12);
       --amber: #fbbf24;
@@ -287,22 +346,23 @@
       --body-bg: var(--bg);
       --sync-zone-bg: rgba(255, 255, 255, 0.03);
       --sync-zone-border: 1px solid rgba(255, 255, 255, 0.06);
-      --brand-icon-bg: rgba(255, 255, 255, 0.06);
-      --brand-icon-border: rgba(255, 255, 255, 0.12);
+      --brand-icon-bg: var(--rgb-dim25);
+      --brand-icon-border: var(--rgb-c);
       --brand-icon-color: #fff;
-      --brand-icon-shadow: none;
-      --btn-primary-bg: #89f336;
-      --btn-primary-color: #0a0a0a;
-      --btn-primary-hover: #9af74a;
-      --btn-primary-shadow: none;
-      --nav-active-bg: rgba(255, 255, 255, 0.06);
-      --nav-active-color: #fff;
-      --nav-active-shadow: none;
-      --focus-ring: 0 0 0 3px rgba(255, 255, 255, 0.12);
-      --focus-border: rgba(255, 255, 255, 0.35);
-      --progress-bar: #89f336;
-      --toast-bg: #89f336;
-      --toast-color: #0a0a0a;
+      --brand-icon-shadow: 0 0 20px var(--rgb-glow);
+      --btn-primary-bg: var(--rgb-c);
+      --btn-primary-color: var(--rgb-on);
+      --btn-primary-hover: var(--rgb-c);
+      --btn-primary-shadow: 0 0 16px var(--rgb-glow);
+      --nav-active-bg: var(--rgb-dim);
+      --nav-active-color: var(--rgb-c);
+      --nav-active-shadow: inset 0 0 0 1px var(--rgb-c);
+      --focus-ring: 0 0 0 3px var(--rgb-glow);
+      --focus-border: var(--rgb-c);
+      --progress-bar: var(--rgb-c);
+      --toast-bg: var(--rgb-c);
+      --toast-color: var(--rgb-on);
+      animation: rf-rgb-sync 4s linear infinite;
     }
 
     [data-theme="rgb"] .btn.primary,
@@ -310,19 +370,12 @@
     [data-theme="rgb"] .macro-editor-disclosure > summary,
     [data-theme="rgb"] .rf-chat-fab,
     [data-theme="rgb"] .rf-chat-send {
-      animation: rf-rgb-shift 4s linear infinite;
+      background: var(--rgb-c);
+      color: var(--rgb-on);
+      box-shadow: 0 0 16px var(--rgb-glow);
       border: none;
       filter: none;
-    }
-
-    @keyframes rf-rgb-nav {
-      0%   { color: #ef4444; background: rgba(239, 68, 68, 0.12); box-shadow: inset 0 0 0 1px #ef4444; }
-      16%  { color: #f97316; background: rgba(249, 115, 22, 0.12); box-shadow: inset 0 0 0 1px #f97316; }
-      33%  { color: #eab308; background: rgba(234, 179, 8, 0.12);  box-shadow: inset 0 0 0 1px #eab308; }
-      50%  { color: #89f336; background: rgba(137, 243, 54, 0.12); box-shadow: inset 0 0 0 1px #89f336; }
-      66%  { color: #22d3ee; background: rgba(34, 211, 238, 0.12); box-shadow: inset 0 0 0 1px #22d3ee; }
-      83%  { color: #8b5cf6; background: rgba(139, 92, 246, 0.12); box-shadow: inset 0 0 0 1px #8b5cf6; }
-      100% { color: #ec4899; background: rgba(236, 72, 153, 0.12); box-shadow: inset 0 0 0 1px #ec4899; }
+      animation: none;
     }
 
     [data-theme="rgb"] .btn.accent,
@@ -331,14 +384,20 @@
     [data-theme="rgb"] .banco-card .btn-copy,
     [data-theme="rgb"] .banco-code,
     [data-theme="rgb"] .editing-tag {
-      animation: rf-rgb-border 4s linear infinite;
+      border-color: var(--rgb-c);
+      color: var(--rgb-c);
       background: transparent;
+      animation: none;
     }
 
     [data-theme="rgb"] .nav-tab.active {
-      animation: rf-rgb-nav 4s linear infinite;
+      color: var(--rgb-c);
+      background: var(--rgb-dim);
+      box-shadow: inset 0 0 0 1px var(--rgb-c);
       border: none;
+      animation: none;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -2444,79 +2503,62 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     .rf-chat-userbar strong { color: var(--text-secondary); font-weight: 600; }
 
     .hidden { display: none !important; }
-    /* ═══ MUDAR O FUNDO DO ÍCONE DO ET APENAS NO TEMA LSD ═══ */
-    @keyframes rf-rgb-et-icon {
-      0%   { background-color: rgba(239, 68, 68, 0.25); border-color: #ef4444; box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
-      16%  { background-color: rgba(249, 115, 22, 0.25); border-color: #f97316; box-shadow: 0 0 20px rgba(249, 115, 22, 0.4); }
-      33%  { background-color: rgba(234, 179, 8, 0.25); border-color: #eab308; box-shadow: 0 0 20px rgba(234, 179, 8, 0.4); }
-      50%  { background-color: rgba(137, 243, 54, 0.25); border-color: #89f336; box-shadow: 0 0 20px rgba(137, 243, 54, 0.4); }
-      66%  { background-color: rgba(34, 211, 238, 0.25); border-color: #22d3ee; box-shadow: 0 0 20px rgba(34, 211, 238, 0.4); }
-      83%  { background-color: rgba(139, 92, 246, 0.25); border-color: #8b5cf6; box-shadow: 0 0 20px rgba(139, 92, 246, 0.4); }
-      100% { background-color: rgba(236, 72, 153, 0.25); border-color: #ec4899; box-shadow: 0 0 20px rgba(236, 72, 153, 0.4); }
+    /* ═══ RGB sincronizado: ícone, chat, ponto e extras (usam vars do root) ═══ */
+    [data-theme="rgb"] .brand-icon {
+      background-color: var(--rgb-dim25) !important;
+      border-color: var(--rgb-c) !important;
+      box-shadow: 0 0 20px var(--rgb-glow) !important;
+      animation: none !important;
     }
 
-    [data-theme="rgb"] .brand-icon {
-      animation: rf-rgb-et-icon 4s linear infinite !important;
-    }
-    /* ═══ SINCRONIZAR CORES DO CHAT INTERNO NO TEMA LSD ═══ */
     [data-theme="rgb"] .rf-chat-tab[data-active="true"],
     [data-theme="rgb"] .rf-chat-msg.mine {
-      animation: rf-rgb-nav 4s linear infinite !important;
+      color: var(--rgb-c) !important;
+      background: var(--rgb-dim) !important;
+      box-shadow: inset 0 0 0 1px var(--rgb-c) !important;
       border: none !important;
+      animation: none !important;
     }
 
     [data-theme="rgb"] .rf-chat-msg-author,
     [data-theme="rgb"] .rf-chat-head-title strong {
-      animation: rf-rgb-border 4s linear infinite !important;
-    }
-
-    /* ═══ RGB: abas e extras pagas ═══ */
-    @keyframes rf-rgb-extras-box {
-      0%   { border-color: #ef4444; box-shadow: 0 0 16px rgba(239, 68, 68, 0.35), inset 0 0 0 1px rgba(239, 68, 68, 0.25); }
-      16%  { border-color: #f97316; box-shadow: 0 0 16px rgba(249, 115, 22, 0.35), inset 0 0 0 1px rgba(249, 115, 22, 0.25); }
-      33%  { border-color: #eab308; box-shadow: 0 0 16px rgba(234, 179, 8, 0.35), inset 0 0 0 1px rgba(234, 179, 8, 0.25); }
-      50%  { border-color: #89f336; box-shadow: 0 0 16px rgba(137, 243, 54, 0.35), inset 0 0 0 1px rgba(137, 243, 54, 0.25); }
-      66%  { border-color: #22d3ee; box-shadow: 0 0 16px rgba(34, 211, 238, 0.35), inset 0 0 0 1px rgba(34, 211, 238, 0.25); }
-      83%  { border-color: #8b5cf6; box-shadow: 0 0 16px rgba(139, 92, 246, 0.35), inset 0 0 0 1px rgba(139, 92, 246, 0.25); }
-      100% { border-color: #ec4899; box-shadow: 0 0 16px rgba(236, 72, 153, 0.35), inset 0 0 0 1px rgba(236, 72, 153, 0.25); }
-    }
-
-    @keyframes rf-rgb-extras-text {
-      0%   { color: #ef4444; }
-      16%  { color: #f97316; }
-      33%  { color: #eab308; }
-      50%  { color: #89f336; }
-      66%  { color: #22d3ee; }
-      83%  { color: #8b5cf6; }
-      100% { color: #ec4899; }
+      color: var(--rgb-c) !important;
+      border-color: var(--rgb-c) !important;
+      animation: none !important;
     }
 
     [data-theme="rgb"] .ponto-tab.active {
-      animation: rf-rgb-nav 4s linear infinite !important;
+      color: var(--rgb-c) !important;
+      background: var(--rgb-dim) !important;
+      box-shadow: inset 0 0 0 1px var(--rgb-c) !important;
       border: none !important;
+      animation: none !important;
     }
 
     [data-theme="rgb"] .extras-type-pills label:has(input:checked),
     [data-theme="rgb"] .extras-type-pills label.is-active {
-      animation: rf-rgb-nav 4s linear infinite !important;
-      border: none !important;
-      box-shadow: none !important;
+      color: var(--rgb-c) !important;
+      background: var(--rgb-dim) !important;
+      border-color: var(--rgb-c) !important;
+      box-shadow: inset 0 0 0 1px var(--rgb-c) !important;
+      animation: none !important;
     }
 
     [data-theme="rgb"] .extras-total {
-      animation: rf-rgb-extras-box 4s linear infinite !important;
+      border-color: var(--rgb-c) !important;
+      box-shadow: 0 0 16px var(--rgb-glow), inset 0 0 0 1px var(--rgb-dim25) !important;
       background: rgba(255, 255, 255, 0.03) !important;
+      animation: none !important;
     }
 
-    [data-theme="rgb"] .extras-total strong {
-      animation: rf-rgb-extras-text 4s linear infinite !important;
-    }
-
+    [data-theme="rgb"] .extras-total strong,
     [data-theme="rgb"] .extras-preview strong,
     [data-theme="rgb"] .extras-record-value,
     [data-theme="rgb"] .extras-cycle strong {
-      animation: rf-rgb-extras-text 4s linear infinite !important;
+      color: var(--rgb-c) !important;
+      animation: none !important;
     }
+
   </style>
 </head>
 <body>
