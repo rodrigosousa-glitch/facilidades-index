@@ -2230,6 +2230,20 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     .rf-chat-userbar strong { color: var(--text-secondary); font-weight: 600; }
 
     .hidden { display: none !important; }
+    /* ═══ MUDAR O FUNDO DO ÍCONE DO ET APENAS NO TEMA LSD ═══ */
+    @keyframes rf-rgb-et-icon {
+      0%   { background-color: rgba(239, 68, 68, 0.25); border-color: #ef4444; box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+      16%  { background-color: rgba(249, 115, 22, 0.25); border-color: #f97316; box-shadow: 0 0 20px rgba(249, 115, 22, 0.4); }
+      33%  { background-color: rgba(234, 179, 8, 0.25); border-color: #eab308; box-shadow: 0 0 20px rgba(234, 179, 8, 0.4); }
+      50%  { background-color: rgba(137, 243, 54, 0.25); border-color: #89f336; box-shadow: 0 0 20px rgba(137, 243, 54, 0.4); }
+      66%  { background-color: rgba(34, 211, 238, 0.25); border-color: #22d3ee; box-shadow: 0 0 20px rgba(34, 211, 238, 0.4); }
+      83%  { background-color: rgba(139, 92, 246, 0.25); border-color: #8b5cf6; box-shadow: 0 0 20px rgba(139, 92, 246, 0.4); }
+      100% { background-color: rgba(236, 72, 153, 0.25); border-color: #ec4899; box-shadow: 0 0 20px rgba(236, 72, 153, 0.4); }
+    }
+
+    [data-theme="rgb"] .brand-icon {
+      animation: rf-rgb-et-icon 4s linear infinite !important;
+    }
   </style>
 </head>
 <body>
