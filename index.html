@@ -2890,6 +2890,61 @@ header {
   box-shadow: 0 0 8px var(--rgb-glow);
   animation: none;
 }
+/* ═══ MOTION NO BOTÃO "COMO CONFIGURAR O ASSISTENTE" ═══ */
+
+.assistant-setup > summary {
+  transition: transform 0.2s ease, background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.assistant-setup > summary:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.assistant-setup[open] > summary {
+  transform: none;
+  border-bottom: 1px solid var(--accent-border);
+  background: var(--accent-dim);
+}
+
+.assistant-setup[open] > summary strong {
+  display: inline-block;
+  animation: rf-assistant-title-pop 0.35s ease;
+}
+
+@keyframes rf-assistant-title-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+/* ═══ MELHORIA VISUAL: BOTÃO "COMO CONFIGURAR" NO TEMA RGB ═══ */
+
+/* Estado normal (fechado) - brilho bem suave */
+[data-theme="rgb"] .assistant-setup > summary {
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: 0 0 10px var(--rgb-glow);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Quando o mouse passa por cima - brilho um pouco mais forte */
+[data-theme="rgb"] .assistant-setup > summary:hover {
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 0 13px var(--rgb-glow);
+  border-color: var(--rgb-c);
+}
+
+/* Quando está aberto - usa a intensidade normal do tema */
+[data-theme="rgb"] .assistant-setup[open] > summary {
+  background: var(--rgb-dim);
+  box-shadow: 0 0 16px var(--rgb-glow);
+  border-bottom: 1px solid var(--rgb-c);
+}
+/* ═══ MELHORIA VISUAL: BORDA DO BOTÃO "COMO CONFIGURAR" NO TEMA RGB (FECHADO) ═══ */
+[data-theme="rgb"] .assistant-setup:not([open]) > summary {
+  border-color: var(--rgb-c);
+  box-shadow: 0 0 8px var(--rgb-glow), inset 0 0 0 1px var(--rgb-c);
+}
   </style>
 </head>
 <body>
