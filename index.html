@@ -416,6 +416,8 @@
 
     /* ── HEADER ── */
     header {
+        position: relative;
+        z-index: 100;
       background: var(--header-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -472,6 +474,73 @@
     }
 
     .header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .theme-picker { position: relative; z-index: 101; }
+
+    .theme-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      z-index: 102;
+      z-index: 1001;
+      min-width: 220px;
+      padding: 6px;
+      border: 1px solid var(--border-strong);
+      border-radius: 12px;
+      background: var(--card);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .theme-option {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-secondary);
+      font: 500 13px var(--font);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.12s ease;
+    }
+
+    .theme-option:hover {
+      background: var(--card-hover);
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+
+    /* Cores do botão por tema */
+    [data-theme="lime"] #theme-toggle-btn {
+      background: #89f336;
+      color: #0a0f08;
+      border-color: #89f336;
+    }
+    [data-theme="classic"] #theme-toggle-btn {
+      background: #22d3ee;
+      color: #0a0f08;
+      border-color: #22d3ee;
+    }
+    [data-theme="pink"] #theme-toggle-btn {
+      background: #ec4899;
+      color: #0a0f08;
+      border-color: #ec4899;
+    }
+    [data-theme="red"] #theme-toggle-btn {
+      background: #ef4444;
+      color: #ffffff;
+      border-color: #ef4444;
+    }
+
+    /* Tema RGB: botão acompanha animação */
+    [data-theme="rgb"] #theme-toggle-btn {
+      background: var(--rgb-c);
+      color: var(--rgb-on);
+      border: none;
+      box-shadow: 0 0 16px var(--rgb-glow);
+      animation: none;
+    }
 
     .header-disclosure {
       position: relative;
@@ -2558,7 +2627,155 @@ input[type="date"]::-webkit-calendar-picker-indicator {
       color: var(--rgb-c) !important;
       animation: none !important;
     }
+  html {
+    zoom: 1.2;
+  }
+  /* ─── ANIMAÇÕES SUAVES (MOTION) ─── */
 
+/* Animação de entrada dos painéis ao trocar de aba */
+.view-panel.active {
+  animation: rf-fade-slide-in 0.45s ease forwards;
+}
+
+@keyframes rf-fade-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Cards flutuam levemente ao passar o mouse */
+.card,
+.macro-item,
+.jira-card,
+.banco-card,
+.banco-row,
+.sd-kpi,
+.ponto-metric {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.macro-item:hover,
+.jira-card:hover,
+.banco-card:hover,
+.sd-kpi:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Botões com efeito de clique suave */
+.btn,
+.bookmarklet,
+.sync-btn,
+.pill,
+.theme-option,
+.rf-chat-fab,
+.rf-chat-send {
+  transition: all 0.2s ease;
+}
+
+.btn:active,
+.bookmarklet:active,
+.sync-btn:active,
+.pill:active,
+.theme-option:active {
+  transform: scale(0.96);
+}
+
+/* Toast com deslize suave ao aparecer */
+#toast {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Menu de temas com abertura suave */
+.theme-menu {
+  transform-origin: top right;
+  animation: rf-menu-pop 0.2s ease;
+}
+
+@keyframes rf-menu-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Macros ganham destaque ao passar o mouse */
+.macro-item {
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.macro-item:hover {
+  transform: translateY(-6px) scale(1.02);
+  border-color: var(--accent-border);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Inputs com suavidade ao focar */
+input,
+select,
+textarea {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+/* Brilho pulsante sutil nos botões principais */
+.btn.primary,
+.bookmarklet,
+.rf-chat-send {
+  animation: rf-pulse 3s infinite;
+}
+
+@keyframes rf-pulse {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.08);
+  }
+}
+
+/* Painel do chat com entrada animada */
+.rf-chat-panel[data-open="true"] {
+  animation: rf-chat-in 0.35s ease;
+}
+
+@keyframes rf-chat-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Badge de notificação com pulo */
+.rf-chat-badge[data-show="true"] {
+  animation: rf-bounce 0.5s ease;
+}
+
+@keyframes rf-bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+}
   </style>
 </head>
 <body>
@@ -2577,10 +2794,20 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         </div>
       </div>
       <div class="header-actions">
-        <button id="theme-toggle-btn" class="btn" type="button" title="Alternar tema" aria-label="Alternar tema">
-          <i data-lucide="palette"></i>
-          <span id="theme-toggle-label">Tema</span>
-        </button>
+        
+                  <div class="theme-picker" id="theme-picker">
+            <button id="theme-toggle-btn" class="btn" type="button" title="Selecionar tema" aria-label="Selecionar tema">
+              <i data-lucide="palette"></i>
+              <span id="theme-toggle-label">Tema</span>
+            </button>
+            <div class="theme-menu" id="theme-menu" hidden>
+              <button type="button" class="theme-option" data-theme-value="lime" data-theme-label="Tema Verde">🟢 Tema Verde</button>
+              <button type="button" class="theme-option" data-theme-value="classic" data-theme-label="Tema Azul">🔵 Tema Azul</button>
+              <button type="button" class="theme-option" data-theme-value="pink" data-theme-label="Tema Rosa">🌸 Tema Rosa</button>
+              <button type="button" class="theme-option" data-theme-value="red" data-theme-label="Tema Vermelho">🔴 Tema Vermelho</button>
+              <button type="button" class="theme-option" data-theme-value="rgb" data-theme-label="Tema LGBT+ 🌈">🌈 Tema LGBT+ 🌈</button>
+            </div>
+          </div>
         <details class="header-disclosure">
           <summary class="btn"><i data-lucide="database"></i> Dados e backup</summary>
           <div class="data-backup-panel">
@@ -5680,7 +5907,6 @@ function render() {
     root.setAttribute('data-theme', next);
     try { localStorage.setItem(KEY, next); } catch (e) {}
 
-    // limpa restos de RGB via JS (versões antigas)
     [
       '--rgb-hue', '--accent', '--accent-dim', '--accent-border', '--accent-glow',
       '--btn-primary-bg', '--btn-primary-hover', '--btn-primary-shadow',
@@ -5688,41 +5914,80 @@ function render() {
       '--focus-ring', '--focus-border', '--progress-bar', '--toast-bg',
       '--brand-icon-bg', '--brand-icon-border', '--brand-icon-color', '--brand-icon-shadow',
       '--sync-zone-bg'
-    ].forEach(function (k) { root.style.removeProperty(k); });
+    ].forEach(k => root.style.removeProperty(k));
 
     const label = document.getElementById('theme-toggle-label');
     const btn = document.getElementById('theme-toggle-btn');
     if (label) label.textContent = LABELS[next];
     if (btn) {
-      const nextIdx = (ORDER.indexOf(next) + 1) % ORDER.length;
-      btn.title = 'Clique para mudar para ' + LABELS[ORDER[nextIdx]];
+      btn.title = 'Mudar tema (atual: ' + LABELS[next] + ')';
       btn.setAttribute('aria-label', btn.title);
     }
 
-    try {
-      if (window.lucide && typeof lucide.createIcons === 'function') {
-        lucide.createIcons();
-      }
-    } catch (e) {}
+    if (window.lucide && typeof lucide.createIcons === 'function') {
+      lucide.createIcons();
+    }
   }
 
-  function toggleTheme(e) {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
+  function buildMenu() {
+    const btn = document.getElementById('theme-toggle-btn');
+    if (!btn) return;
+
+    // Garante que o botão esteja dentro de .theme-picker
+    let picker = btn.closest('.theme-picker');
+    if (!picker) {
+      picker = document.createElement('div');
+      picker.className = 'theme-picker';
+      picker.id = 'theme-picker';
+      btn.parentNode.insertBefore(picker, btn);
+      picker.appendChild(btn);
     }
-    apply(ORDER[(ORDER.indexOf(current()) + 1) % ORDER.length]);
+
+    // Remove menu antigo se existir e cria um novo
+    let menu = document.getElementById('theme-menu');
+    if (menu) menu.remove();
+
+    menu = document.createElement('div');
+    menu.className = 'theme-menu';
+    menu.id = 'theme-menu';
+    menu.hidden = true;
+    picker.appendChild(menu);
+
+    const items = [
+      { value: 'lime', label: '🟢 Tema Verde' },
+      { value: 'classic', label: '🔵 Tema Azul' },
+      { value: 'pink', label: '🌸 Tema Rosa' },
+      { value: 'red', label: '🔴 Tema Vermelho' },
+      { value: 'rgb', label: '🌈 Tema LGBT+ 🌈' }
+    ];
+
+    items.forEach(item => {
+      const opt = document.createElement('button');
+      opt.type = 'button';
+      opt.className = 'theme-option';
+      opt.dataset.themeValue = item.value;
+      opt.textContent = item.label;
+      opt.addEventListener('click', () => {
+        apply(item.value);
+        menu.hidden = true;
+      });
+      menu.appendChild(opt);
+    });
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menu.hidden = !menu.hidden;
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.theme-picker')) {
+        menu.hidden = true;
+      }
+    });
   }
 
   apply(current());
-
-  document.addEventListener('click', function (e) {
-    const btn = e.target && e.target.closest
-      ? e.target.closest('#theme-toggle-btn')
-      : null;
-    if (!btn) return;
-    toggleTheme(e);
-  });
+  buildMenu();
 })();
 </script>
 
