@@ -2945,6 +2945,20 @@ header {
   border-color: var(--rgb-c);
   box-shadow: 0 0 8px var(--rgb-glow), inset 0 0 0 1px var(--rgb-c);
 }
+/* Botão "Como configurar o Assistente" fechado com cor mais forte (exceto RGB) */
+[data-theme]:not([data-theme="rgb"]) .assistant-setup:not([open]) > summary {
+  background: var(--accent-dim);
+  border-color: var(--accent-border);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+/* Corrige sobreposição do chat sobre o cabeçalho fixo */
+.rf-chat-fab {
+  z-index: 110;
+}
+
+.rf-chat-panel {
+  z-index: 111;
+}
   </style>
 </head>
 <body>
