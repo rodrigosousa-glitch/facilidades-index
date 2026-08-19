@@ -5493,7 +5493,7 @@ function render() {
 })();
 </script>
 
-<!-- SCRIPT 5: SALDO DEVEDOR POR CCB (PARSER INTELIGENTE HÍBRIDO) -->
+<!-- SCRIPT 5: SALDO DEVEDOR POR CCB (ATUALIZADO: SUPORTE A PAGO_PARCIAL E NOVA TABELA MÊNTORE) -->
 <script>
 (() => {
   'use strict';
@@ -5550,54 +5550,97 @@ function render() {
     const seenCcbs = new Set();
 
     for (const line of lines) {
-      // Tab / ; / 2+ spaces first; fallback to single-space tokens
+      // Ignora linhas de cabeçalho do Mêntore
+      if (/solicitações de crédito|total a pagar|saldo deve/i.test(line) && /data|ccb|produto/i.test(line)) {
+        continue;
+      }
+
       let parts = line.split(/\t|;| {2,}/).map(p => p.trim()).filter(Boolean);
       if (parts.length < 3) {
         parts = line.split(/\s+/).map(p => p.trim()).filter(Boolean);
       }
       if (parts.length < 2) continue;
 
-      let date = '', ccb = '', status = '', valor = null, valorPagar = null;
+      let date = '', ccb = '', status = '', valor = null, valorPagar = null, saldoMentore = null;
       const joined = parts.join(' ');
 
       for (let i = 0; i < parts.length; i++) {
         const p = parts[i];
-        if (!date && /^\d{2}\/\d{2}\/\d{4}$/.test(p)) { date = p; continue; }
-        if (!ccb && /^\d{5,12}$/.test(p)) { ccb = p; continue; }
+        
+        // 1. Detecção de Data
+        if (!date && /^\d{2}\/\d{2}\/\d{4}$/.test(p)) { 
+          date = p; 
+          continue; 
+        }
+
+        // 2. Detecção de CCB (5 a 12 dígitos)
+        if (!ccb && /^\d{5,12}$/.test(p)) { 
+          ccb = p; 
+          continue; 
+        }
+
+        // 3. Detecção de Status (priorizando PAGO_PARCIAL antes de PAGO)
         if (!status) {
-          if (/^em$/i.test(p) && parts[i + 1] && /^aberto$/i.test(parts[i + 1])) {
-            status = 'Em aberto';
+          if (/^pago[_\s-]?parcial$/i.test(p)) {
+            status = 'PAGO_PARCIAL';
+            continue;
+          }
+          if (/^pago$/i.test(p) && parts[i + 1] && /^parcial$/i.test(parts[i + 1])) {
+            status = 'PAGO_PARCIAL';
             i++;
             continue;
           }
-          if (/^(pago|inadimplente|cancelado)$/i.test(p) || /em\s+aberto|pago|inadimplente|cancelado/i.test(p)) {
-            status = p;
+          if (/^em$/i.test(p) && parts[i + 1] && /^aberto$/i.test(parts[i + 1])) {
+            status = 'EM ABERTO';
+            i++;
+            continue;
+          }
+          if (/^em[_\s-]aberto$/i.test(p) || /^aberto$/i.test(p)) {
+            status = 'EM ABERTO';
+            continue;
+          }
+          if (/^pago$/i.test(p) || /^quitado$/i.test(p) || /^liquidado$/i.test(p)) {
+            status = 'PAGO';
+            continue;
+          }
+          if (/^inadimplente$/i.test(p) || /^cancelado$/i.test(p)) {
+            status = p.toUpperCase();
             continue;
           }
         }
+
+        // 4. Detecção de Valores Monetários (Valor Solicitado, Total a Pagar, Saldo Devedor)
         const m = parseMoney(p);
-        if (m !== null && !/^\d{5,12}$/.test(p) && !/^\d{1,2}:\d{2}$/.test(p)) {
+        if (m !== null && !/^\d{5,12}$/.test(p) && !/^\d{1,2}:\d{2}$/.test(p) && !/^\d{2}\/\d{2}\/\d{4}$/.test(p)) {
           if (valor === null) valor = m;
           else if (valorPagar === null) valorPagar = m;
+          else if (saldoMentore === null) saldoMentore = m;
         }
       }
 
-      if (!status && /em\s+aberto/i.test(joined)) status = 'Em aberto';
-      else if (!status && /\bpago\b/i.test(joined)) status = 'Pago';
+      // Fallback de status via linha completa
+      if (!status) {
+        if (/pago[_\s-]parcial/i.test(joined)) status = 'PAGO_PARCIAL';
+        else if (/em\s+aberto/i.test(joined)) status = 'EM ABERTO';
+        else if (/\bpago\b/i.test(joined) && !/parcial/i.test(joined)) status = 'PAGO';
+        else if (/inadimplente/i.test(joined)) status = 'INADIMPLENTE';
+        else if (/cancelado/i.test(joined)) status = 'CANCELADO';
+      }
 
       if (ccb && !seenCcbs.has(ccb)) {
         seenCcbs.add(ccb);
         records.push({
           date: date || '—',
           ccb,
-          status: status || 'Em Aberto',
+          status: status || 'EM ABERTO',
           valor: valor || 0,
-          valorPagar: valorPagar !== null ? valorPagar : (valor || 0)
+          valorPagar: valorPagar !== null ? valorPagar : (valor || 0),
+          saldoMentore: saldoMentore !== null ? saldoMentore : null
         });
       }
     }
 
-    // Multiline / stacked fallback
+    // Fallback para colagem multilinhas / stacked
     if (records.length === 0) {
       let i = 0;
       while (i < lines.length) {
@@ -5608,23 +5651,34 @@ function render() {
         if (isDate || isCcb) {
           let date = isDate ? line : '—';
           let ccb = isCcb ? line : '';
-          let status = 'Em Aberto';
+          let status = '';
           let valor = null;
           let valorPagar = null;
+          let saldoMentore = null;
 
           let j = 1;
-          while (j <= 8 && (i + j) < lines.length) {
+          while (j <= 9 && (i + j) < lines.length) {
             const nextLine = lines[i + j];
             if (j > 1 && (/^\d{2}\/\d{2}\/\d{4}$/.test(nextLine) || (/^\d{5,12}$/.test(nextLine) && ccb))) break;
 
-            if (!date && /^\d{2}\/\d{2}\/\d{4}$/.test(nextLine)) date = nextLine;
-            else if (!ccb && /^\d{5,12}$/.test(nextLine)) ccb = nextLine;
-            else if (/em\s*aberto|pago|inadimplente|cancelado/i.test(nextLine)) status = nextLine;
-            else {
+            if (!date && /^\d{2}\/\d{2}\/\d{4}$/.test(nextLine)) {
+              date = nextLine;
+            } else if (!ccb && /^\d{5,12}$/.test(nextLine)) {
+              ccb = nextLine;
+            } else if (!status && /pago[_\s-]parcial/i.test(nextLine)) {
+              status = 'PAGO_PARCIAL';
+            } else if (!status && /em\s*aberto/i.test(nextLine)) {
+              status = 'EM ABERTO';
+            } else if (!status && /\bpago\b/i.test(nextLine) && !/parcial/i.test(nextLine)) {
+              status = 'PAGO';
+            } else if (!status && /inadimplente|cancelado/i.test(nextLine)) {
+              status = nextLine.toUpperCase();
+            } else {
               const m = parseMoney(nextLine);
               if (m !== null && !/^\d{5,12}$/.test(nextLine)) {
                 if (valor === null) valor = m;
                 else if (valorPagar === null) valorPagar = m;
+                else if (saldoMentore === null) saldoMentore = m;
               }
             }
             j++;
@@ -5635,9 +5689,10 @@ function render() {
             records.push({
               date: date || '—',
               ccb,
-              status: status || 'Em Aberto',
+              status: status || 'EM ABERTO',
               valor: valor || 0,
-              valorPagar: valorPagar !== null ? valorPagar : (valor || 0)
+              valorPagar: valorPagar !== null ? valorPagar : (valor || 0),
+              saldoMentore: saldoMentore !== null ? saldoMentore : null
             });
             i += Math.max(1, j - 1);
           } else {
@@ -5768,7 +5823,6 @@ function render() {
   async function copyKpiValue(targetId) {
     const el = $(targetId);
     if (!el) { notify('Valor não encontrado.', 'error'); return; }
-    // ONLY plain text — never HTML
     const clean = (el.textContent || el.innerText || '').trim();
     if (!clean) { notify('Nada para copiar.', 'warn'); return; }
     const ok = await execCopy(clean);
@@ -5847,20 +5901,32 @@ function render() {
     });
 
     const rows = creditos.map(c => {
-      const pago = pagoByCcb.get(c.ccb) || 0;
+      const isMentoreParcial = /pago[_\s-]?parcial/i.test(c.status);
+      const isMentorePagoStrict = !isMentoreParcial && /^(pago|quitado|liquidado)$/i.test(c.status.trim());
+      const isMentoreCancelado = /cancelado/i.test(c.status);
+
+      let pago = pagoByCcb.get(c.ccb) || 0;
       const desconto = descByCcb.get(c.ccb) || 0;
-      const liquido = c.valorPagar - desconto;
-      const saldo = Math.max(0, liquido - pago);
+
+      // Se não colou o extrato (pago === 0), mas o Mêntore já informou um saldo devedor menor:
+      if (pago === 0 && isMentoreParcial && c.saldoMentore !== null && c.saldoMentore < c.valorPagar) {
+        pago = Math.max(0, c.valorPagar - c.saldoMentore);
+      }
+
+      const liquido = Math.max(0, c.valorPagar - desconto);
+      const saldo = isMentorePagoStrict || isMentoreCancelado ? 0 : Math.max(0, liquido - pago);
 
       let status = 'aberto', statusTxt = 'Em aberto';
-      const isPagoMentore = /pago/i.test(c.status);
 
-      if (isPagoMentore || saldo <= 0.01) {
+      if (isMentorePagoStrict || isMentoreCancelado || saldo <= 0.01) {
         status = 'quitado';
-        statusTxt = 'Quitado';
-      } else if (pago > 0 || desconto > 0) {
+        statusTxt = isMentoreCancelado ? 'Cancelado' : 'Quitado';
+      } else if (isMentoreParcial || pago > 0 || desconto > 0) {
         status = 'parcial';
-        statusTxt = 'Parcial';
+        statusTxt = 'Pago Parcial';
+      } else if (/inadimplente/i.test(c.status)) {
+        status = 'aberto';
+        statusTxt = 'Inadimplente';
       }
 
       return {
@@ -5878,23 +5944,27 @@ function render() {
 
     processedRows = rows;
 
+    // Regra de contrato aberto: possui saldo > 0 e não está cancelado nem quitado
+    const isRowOpen = r => r.status !== 'quitado' && r.saldo > 0.01 && !/^(pago|quitado|liquidado|cancelado)$/i.test(r.statusMentore.trim());
+
     let displayRows = rows.slice();
     if (onlyOpen) {
-      displayRows = displayRows.filter(r => r.status !== 'quitado' && !/pago/i.test(r.statusMentore));
+      displayRows = displayRows.filter(isRowOpen);
     }
     if (searchQuery) {
       displayRows = displayRows.filter(r =>
         r.ccb.toLowerCase().includes(searchQuery) ||
-        r.statusTxt.toLowerCase().includes(searchQuery)
+        r.statusTxt.toLowerCase().includes(searchQuery) ||
+        r.statusMentore.toLowerCase().includes(searchQuery)
       );
     }
 
-    render(displayRows, rows);
+    render(displayRows, rows, isRowOpen);
     save();
   }
 
-  function render(displayRows, allRows) {
-    const openRows = allRows.filter(r => r.status !== 'quitado' && !/pago/i.test(r.statusMentore));
+  function render(displayRows, allRows, isRowOpen) {
+    const openRows = allRows.filter(isRowOpen);
     const tot = openRows.reduce((a, r) => ({
       pagar: a.pagar + r.valorPagar,
       desconto: a.desconto + r.desconto,
@@ -6036,7 +6106,6 @@ function render() {
     if ($('sd-only-open')) $('sd-only-open').onchange = processar;
     if ($('sd-search')) $('sd-search').oninput = processar;
 
-    // KPI copy: always textContent of the target <strong>
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('.sd-kpi-copy');
       if (!btn) return;
