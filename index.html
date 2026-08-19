@@ -367,7 +367,8 @@
 
     [data-theme="rgb"] .btn.primary,
     [data-theme="rgb"] .bookmarklet,
-    [data-theme="rgb"] .macro-editor-disclosure > summary,
+    [data-theme="rgb"] #macro-new-btn,
+    [data-theme="rgb"] .macro-modal-submit,
     [data-theme="rgb"] .rf-chat-fab,
     [data-theme="rgb"] .rf-chat-send {
       background: var(--rgb-c);
@@ -376,6 +377,27 @@
       border: none;
       filter: none;
       animation: none;
+    }
+
+    [data-theme="rgb"] .macro-modal {
+      border-color: var(--rgb-c);
+      box-shadow: 0 0 28px var(--rgb-glow), var(--shadow-lg);
+    }
+
+    [data-theme="rgb"] .macro-modal-head {
+      border-bottom-color: rgba(255, 255, 255, 0.08);
+    }
+
+    [data-theme="rgb"] .macro-modal .pill {
+      border-color: var(--rgb-c);
+      color: var(--rgb-c);
+      background: var(--rgb-dim);
+    }
+
+    [data-theme="rgb"] .macro-modal .editing-tag {
+      border-color: var(--rgb-c);
+      color: var(--rgb-c);
+      background: var(--rgb-dim);
     }
 
     [data-theme="rgb"] .btn.accent,
@@ -547,14 +569,12 @@
     }
 
     .header-disclosure > summary,
-    .assistant-setup > summary,
-    .macro-editor-disclosure > summary {
+    .assistant-setup > summary {
       list-style: none;
     }
 
     .header-disclosure > summary::-webkit-details-marker,
-    .assistant-setup > summary::-webkit-details-marker,
-    .macro-editor-disclosure > summary::-webkit-details-marker {
+    .assistant-setup > summary::-webkit-details-marker {
       display: none;
     }
 
@@ -878,62 +898,127 @@
     .view-panel { display: none; }
     .view-panel.active { display: block; }
 
-    /* ── MACROS WORKSPACE ── */
+    /* ── MACROS WORKSPACE (full-width library + motion modal) ── */
     .workspace-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 320px;
-      gap: 20px;
-      align-items: start;
+      display: block;
+      width: 100%;
     }
 
     .macro-library-card {
-      grid-column: 1;
-      grid-row: 1;
+      width: 100%;
     }
 
-    .macro-editor-card {
-      grid-column: 2;
-      grid-row: 1;
-      padding: 14px;
+    .macro-section-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
     }
 
-    .macro-editor-disclosure > summary {
+    #macro-new-btn {
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-color);
+      font-weight: 600;
+      border: none;
+      box-shadow: var(--btn-primary-shadow);
+      border-radius: var(--radius-xs);
+      padding: 8px 14px;
+    }
+
+    #macro-new-btn:hover {
+      background: var(--btn-primary-hover);
+      color: var(--btn-primary-color);
+      filter: brightness(1.08);
+    }
+
+    /* Modal overlay + panel */
+    .macro-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .macro-modal-overlay[data-open="true"] {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .macro-modal {
+      width: min(460px, calc(100vw - 32px));
+      max-height: min(90vh, 720px);
+      overflow: auto;
+      padding: 0;
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      background: var(--card);
+      box-shadow: var(--shadow-lg), 0 0 0 1px var(--border);
+      transform: scale(0.94) translateY(12px);
+      opacity: 0;
+      transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .macro-modal-overlay[data-open="true"] .macro-modal {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+
+    .macro-modal-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      background: var(--btn-primary-bg);
-      color: var(--btn-primary-color);
-      cursor: pointer;
-      box-shadow: var(--btn-primary-shadow);
+      gap: 12px;
+      padding: 16px 18px 14px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--card);
+      z-index: 1;
     }
 
-    .macro-editor-summary-title {
-      display: inline-flex;
+    .macro-modal-head-left {
+      display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       min-width: 0;
     }
 
-    .macro-editor-summary-title svg {
-      width: 15px;
-      height: 15px;
+    .macro-modal-head .title {
+      margin: 0;
+      border-left: none;
+      padding-left: 0;
+      padding-bottom: 0;
+      font-size: 15px;
     }
 
-    .macro-editor-disclosure > summary .title {
-      color: inherit;
+    .macro-modal-close {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
     }
 
-    .macro-editor-disclosure[open] > summary {
-      margin-bottom: 18px;
+    .macro-modal-close svg {
+      width: 16px;
+      height: 16px;
     }
 
-    .macro-editor-disclosure .editing-tag {
-      color: var(--btn-primary-color);
-      border-color: currentColor;
-      background: rgba(0, 0, 0, 0.12);
+    .macro-modal-body {
+      padding: 16px 18px 18px;
     }
 
     .macro-form-actions {
@@ -942,8 +1027,13 @@
       margin-top: 16px;
     }
 
-    .macro-form-submit {
+    .macro-form-submit,
+    .macro-modal-submit {
       flex: 1;
+    }
+
+    body.macro-modal-open {
+      overflow: hidden;
     }
 
     .title {
@@ -1067,7 +1157,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
     .library-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
       gap: 12px;
       max-height: 560px;
       overflow-y: auto;
@@ -2130,9 +2220,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     /* ── RESPONSIVE ── */
     @media (max-width: 1100px) {
       .app-layout { grid-template-columns: 1fr; }
-      .workspace-grid { grid-template-columns: 1fr; }
-      .macro-editor-card { grid-column: 1; grid-row: 1; }
-      .macro-library-card { grid-column: 1; grid-row: 2; }
       .ponto-card { position: static; }
       .main-nav { flex-wrap: wrap; }
       .nav-tab { flex: 1 1 auto; min-width: 130px; }
@@ -2158,7 +2245,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
       .sync-zone-actions .btn { width: 100%; white-space: normal; }
       .sync-status { min-width: 0; overflow-wrap: anywhere; }
       .macro-library-card { padding: 18px; }
-      .macro-editor-card { padding: 10px; }
+      .macro-section-actions { width: 100%; }
+      #macro-new-btn { width: 100%; justify-content: center; }
+      .section-head { flex-wrap: wrap; gap: 12px; }
     }
 
     /* ── CHAT INTERNO ── */
@@ -3041,13 +3130,40 @@ header {
       <!-- PAINEL 1: MACROS -->
       <div id="view-macros" class="view-panel active">
         <div class="workspace-grid">
-          <aside class="card macro-editor-card">
-            <details id="macro-editor-disclosure" class="macro-editor-disclosure">
-              <summary>
-                <span class="macro-editor-summary-title"><i data-lucide="plus"></i><span id="editor-title" class="title">Nova macro</span></span>
-                <span id="editing-badge" class="editing-tag" hidden>EDITANDO</span>
-              </summary>
-              <form id="macro-form">
+          <section class="card macro-library-card">
+            <div class="section-head">
+              <div>
+                <h2 class="title">Macros cadastradas</h2>
+                <div id="macro-count" class="hint"></div>
+              </div>
+              <div class="macro-section-actions">
+                <button id="macro-new-btn" class="btn primary" type="button" title="Criar nova macro">
+                  <i data-lucide="plus"></i> Nova macro
+                </button>
+              </div>
+            </div>
+            <div class="toolbar">
+              <input id="search-macro" type="search" placeholder="Pesquisar por atalho ou conteúdo…">
+            </div>
+            <div id="macro-library" class="library-grid"></div>
+          </section>
+        </div>
+      </div>
+
+      <!-- Modal: Nova / Editar macro -->
+      <div id="macro-modal-overlay" class="macro-modal-overlay" data-open="false" aria-hidden="true">
+        <div class="macro-modal" role="dialog" aria-modal="true" aria-labelledby="editor-title" id="macro-modal">
+          <div class="macro-modal-head">
+            <div class="macro-modal-head-left">
+              <h2 id="editor-title" class="title">Nova macro</h2>
+              <span id="editing-badge" class="editing-tag" hidden>EDITANDO</span>
+            </div>
+            <button type="button" id="macro-modal-close" class="btn ghost macro-modal-close" title="Fechar" aria-label="Fechar">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+          <div class="macro-modal-body">
+            <form id="macro-form">
               <input id="macro-id" type="hidden">
               <div class="group">
                 <label for="shortcut">Atalho</label>
@@ -3068,25 +3184,11 @@ header {
                 <input id="macro-favorite" type="checkbox"> Fixar entre as favoritas do Assistente
               </label>
               <div class="macro-form-actions">
-                <button class="btn primary macro-form-submit" type="submit">Salvar macro</button>
+                <button class="btn primary macro-form-submit macro-modal-submit" type="submit">Salvar macro</button>
                 <button id="macro-cancel" class="btn" type="button">Cancelar</button>
               </div>
-              </form>
-            </details>
-          </aside>
-
-          <section class="card macro-library-card">
-            <div class="section-head">
-              <div>
-                <h2 class="title">Macros cadastradas</h2>
-                <div id="macro-count" class="hint"></div>
-              </div>
-            </div>
-            <div class="toolbar">
-              <input id="search-macro" type="search" placeholder="Pesquisar por atalho ou conteúdo…">
-            </div>
-            <div id="macro-library" class="library-grid"></div>
-          </section>
+            </form>
+          </div>
         </div>
       </div>
 
@@ -4079,14 +4181,36 @@ header {
     }
   }
 
-  function resetMacroForm() {
+  function openMacroModal() {
+    const overlay = $('macro-modal-overlay');
+    if (!overlay) return;
+    overlay.dataset.open = 'true';
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('macro-modal-open');
+    if (window.lucide) lucide.createIcons();
+    requestAnimationFrame(() => {
+      const sc = $('shortcut');
+      if (sc) sc.focus();
+    });
+  }
+
+  function closeMacroModal() {
+    const overlay = $('macro-modal-overlay');
+    if (!overlay) return;
+    overlay.dataset.open = 'false';
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('macro-modal-open');
+  }
+
+  function resetMacroForm(options) {
+    const opts = options || {};
     $('macro-id').value = '';
     $('shortcut').value = '';
     $('macro-content').value = '';
     $('macro-favorite').checked = false;
     $('editing-badge').hidden = true;
     $('editor-title').textContent = 'Nova macro';
-    $('macro-editor-disclosure').open = false;
+    if (opts.close !== false) closeMacroModal();
   }
 
 function render() {
@@ -4183,8 +4307,37 @@ function render() {
     }
   };
 
-  $('macro-cancel').onclick = resetMacroForm;
+  $('macro-cancel').onclick = () => resetMacroForm();
   $('search-macro').oninput = render;
+
+  const macroNewBtn = $('macro-new-btn');
+  if (macroNewBtn) {
+    macroNewBtn.onclick = () => {
+      resetMacroForm({ close: false });
+      $('editor-title').textContent = 'Nova macro';
+      $('editing-badge').hidden = true;
+      openMacroModal();
+    };
+  }
+
+  const macroModalClose = $('macro-modal-close');
+  if (macroModalClose) macroModalClose.onclick = () => resetMacroForm();
+
+  const macroOverlay = $('macro-modal-overlay');
+  if (macroOverlay) {
+    macroOverlay.addEventListener('click', (e) => {
+      if (e.target === macroOverlay) resetMacroForm();
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const overlay = $('macro-modal-overlay');
+    if (overlay && overlay.dataset.open === 'true') {
+      e.preventDefault();
+      resetMacroForm();
+    }
+  });
 
   $('macro-library').onclick = async e => {
     const btn = e.target.closest('[data-action]');
@@ -4203,8 +4356,7 @@ function render() {
       $('macro-favorite').checked = item.favorite;
       $('editing-badge').hidden = false;
       $('editor-title').textContent = 'Editar macro';
-      $('macro-editor-disclosure').open = true;
-      $('shortcut').focus();
+      openMacroModal();
     }
     if (action === 'macro-del' && confirm(`Excluir a macro ${item.shortcut}?`)) {
       macros = macros.filter(x => x.id !== itemId);
