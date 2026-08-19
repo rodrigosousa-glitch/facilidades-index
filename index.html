@@ -2196,12 +2196,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     }
 
     /* ── TOAST ── */
+    /* Canto inferior esquerdo: evita colisão com o FAB do chat (canto direito) */
     #toast {
       position: fixed;
-      right: 24px;
+      left: 24px;
+      right: auto;
       bottom: 24px;
-      z-index: 99;
+      z-index: 200;
       display: none;
+      max-width: min(420px, calc(100vw - 48px));
       padding: 12px 18px;
       border-radius: 10px;
       background: var(--toast-bg);
@@ -2717,7 +2720,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
       animation: none !important;
     }
   html {
-    zoom: 1.1;
+    zoom: 1.0;
   }
   /* ─── ANIMAÇÕES SUAVES (MOTION) ─── */
 
