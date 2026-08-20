@@ -4221,7 +4221,7 @@ function render() {
     const root = $('macro-library');
     const list = macros.filter(x => !query || x.shortcut.toLocaleLowerCase('pt-BR').includes(query));
     
-    $('macro-count').textContent = `${list.length} de ${macros.length} macro(s) disponível(is)`;
+    $('macro-count').textContent = `.   ${list.length} de ${macros.length} macros disponíveis`;
     
     if (!list.length) {
       root.innerHTML = '<div class="empty-state">Nenhuma macro encontrada.</div>';
