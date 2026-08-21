@@ -3043,6 +3043,158 @@ header {
   border-color: var(--accent-border);
   box-shadow: 0 0 8px var(--accent-glow);
 }
+
+    /* ═══ DOCUMENTAÇÃO (Google Docs viewer) ═══ */
+    .rf-docs-card {
+      display: flex;
+      flex-direction: column;
+      min-height: min(72vh, 820px);
+      padding-bottom: 16px;
+    }
+    .rf-docs-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .rf-docs-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 12px;
+      flex-wrap: wrap;
+    }
+    .rf-docs-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .rf-docs-status[data-state="loading"] { color: var(--amber); }
+    .rf-docs-status[data-state="ready"] { color: var(--green); }
+    .rf-docs-status[data-state="error"] { color: #fca5a5; }
+    .rf-docs-cache {
+      font-size: 11px;
+      color: var(--muted-dim);
+      font-variant-numeric: tabular-nums;
+    }
+    .rf-docs-shell {
+      position: relative;
+      flex: 1;
+      min-height: 480px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg-elevated);
+      overflow: hidden;
+    }
+    .rf-docs-frame {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #fff;
+    }
+    .rf-docs-loading,
+    .rf-docs-error {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 24px;
+      text-align: center;
+      background: var(--bg-elevated);
+      z-index: 2;
+    }
+    .rf-docs-loading[hidden],
+    .rf-docs-error[hidden],
+    .rf-docs-frame[hidden] {
+      display: none !important;
+    }
+    .rf-docs-skeleton {
+      width: min(420px, 90%);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .rf-docs-skel-line {
+      height: 12px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, var(--card) 0%, var(--card-hover) 50%, var(--card) 100%);
+      background-size: 200% 100%;
+      animation: rf-docs-shimmer 1.2s ease-in-out infinite;
+    }
+    .rf-docs-skel-line.w60 { width: 60%; }
+    .rf-docs-skel-line.w90 { width: 90%; }
+    .rf-docs-skel-line.w75 { width: 75%; }
+    .rf-docs-skel-line.w85 { width: 85%; }
+    .rf-docs-skel-line.w50 { width: 50%; }
+    @keyframes rf-docs-shimmer {
+      0% { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
+    .rf-docs-loading-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .rf-docs-error-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 12px;
+      background: var(--amber-dim);
+      border: 1px solid rgba(251, 191, 36, 0.28);
+      color: var(--amber);
+    }
+    .rf-docs-error-icon svg { width: 22px; height: 22px; stroke-width: 1.75; }
+    .rf-docs-error-title {
+      margin: 0 0 8px;
+      font-size: 15px;
+      font-weight: 650;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    .rf-docs-error-text {
+      max-width: 520px;
+      margin: 0 auto 14px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .rf-docs-error-steps {
+      max-width: 520px;
+      margin: 0 auto 18px;
+      padding-left: 20px;
+      text-align: left;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+    .rf-docs-error-steps li { margin: 6px 0; }
+    .rf-docs-error-steps strong { color: var(--text-secondary); font-weight: 600; }
+    .rf-docs-error-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+    @media (max-width: 720px) {
+      .rf-docs-shell { min-height: 420px; }
+      .rf-docs-card { min-height: 0; }
+      .rf-docs-toolbar { width: 100%; }
+      .rf-docs-toolbar .btn { flex: 1; justify-content: center; }
+    }
+
 /* Corrige sobreposição do chat sobre o cabeçalho fixo */
 .rf-chat-fab {
   z-index: 110;
@@ -3125,6 +3277,7 @@ header {
       <nav class="main-nav" role="tablist">
         <button class="nav-tab active" data-view="macros" role="tab"><i data-lucide="zap"></i> Gestão de Macros</button>
         <button class="nav-tab" data-view="jira" role="tab"><i data-lucide="book-open"></i> Guia de Chamados do JIRA</button>
+        <button class="nav-tab" data-view="docs" role="tab"><i data-lucide="file-text"></i> Alinhamentos</button>
         <button class="nav-tab" data-view="bancos" role="tab"><i data-lucide="landmark"></i> Códigos dos Bancos</button>
         <button class="nav-tab" data-view="ocorrencias" role="tab"><i data-lucide="clipboard-list"></i> Tipos de ocorrência</button>
         <button class="nav-tab" data-view="saldo" role="tab"><i data-lucide="wallet"></i> Saldo Devedor</button>
@@ -3356,6 +3509,72 @@ header {
                 <p>Cliente solicita estorno de tarifa Swile. Motivo do estorno: <strong>Data de cobrança:</strong> <strong>Ticket:</strong></p>
               </div>
             </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- PAINEL: DOCUMENTAÇÃO (Google Docs integrado) -->
+      <div id="view-docs" class="view-panel">
+        <section class="card rf-docs-card">
+          <div class="section-head">
+            <div>
+              <h2 class="title">Documentação</h2>
+              <div class="hint">Referência interna integrada ao Rodrigo Facilidades. O conteúdo acompanha o documento no Google Docs quando o compartilhamento permitir visualização embutida.</div>
+            </div>
+            <div class="rf-docs-toolbar" role="toolbar" aria-label="Ações da documentação">
+              <button type="button" id="rf-docs-refresh" class="btn small" title="Recarregar documento">
+                <i data-lucide="refresh-cw"></i> Atualizar
+              </button>
+              <a id="rf-docs-open-ext" class="btn small accent" href="https://docs.google.com/document/d/1Ppku7G25tLoQAgeY9sZ9DzgUvHgA3fv6uYUJYAVBCs8/edit" target="_blank" rel="noopener noreferrer" title="Abrir no Google Docs">
+                <i data-lucide="external-link"></i> Abrir no Docs
+              </a>
+            </div>
+          </div>
+
+          <div class="rf-docs-meta" id="rf-docs-meta" aria-live="polite">
+            <span class="rf-docs-status" id="rf-docs-status" data-state="idle">Aguardando…</span>
+            <span class="rf-docs-cache" id="rf-docs-cache" hidden></span>
+          </div>
+
+          <div class="rf-docs-shell" id="rf-docs-shell">
+            <div class="rf-docs-loading" id="rf-docs-loading" hidden>
+              <div class="rf-docs-skeleton">
+                <div class="rf-docs-skel-line w60"></div>
+                <div class="rf-docs-skel-line w90"></div>
+                <div class="rf-docs-skel-line w75"></div>
+                <div class="rf-docs-skel-line w85"></div>
+                <div class="rf-docs-skel-line w50"></div>
+              </div>
+              <p class="rf-docs-loading-label">Carregando documentação…</p>
+            </div>
+
+            <div class="rf-docs-error" id="rf-docs-error" hidden role="alert">
+              <div class="rf-docs-error-icon" aria-hidden="true"><i data-lucide="file-warning"></i></div>
+              <h3 class="rf-docs-error-title">Documento indisponível para leitura embutida</h3>
+              <p class="rf-docs-error-text" id="rf-docs-error-text">
+                O Google Docs bloqueou a visualização dentro do aplicativo. Isso acontece quando o arquivo não está compartilhado como “Qualquer pessoa com o link” (visualizador) ou não foi publicado na web.
+              </p>
+              <ol class="rf-docs-error-steps">
+                <li>Abra o documento no Google Docs.</li>
+                <li>Clique em <strong>Compartilhar</strong> → acesso geral: <strong>Qualquer pessoa com o link</strong> → função <strong>Visualizador</strong>.</li>
+                <li>Opcional (melhor embed): <strong>Arquivo → Compartilhar → Publicar na web</strong> e publique como página da web.</li>
+                <li>Volte aqui e clique em <strong>Atualizar</strong>.</li>
+              </ol>
+              <div class="rf-docs-error-actions">
+                <button type="button" id="rf-docs-retry" class="btn primary"><i data-lucide="refresh-cw"></i> Tentar novamente</button>
+                <a class="btn accent" href="https://docs.google.com/document/d/1Ppku7G25tLoQAgeY9sZ9DzgUvHgA3fv6uYUJYAVBCs8/edit" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i> Abrir no Google Docs</a>
+              </div>
+            </div>
+
+            <iframe
+              id="rf-docs-frame"
+              class="rf-docs-frame"
+              title="Documentação Rodrigo Facilidades"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              allow="fullscreen"
+              hidden
+            ></iframe>
           </div>
         </section>
       </div>
@@ -7044,6 +7263,192 @@ function render() {
     document.addEventListener('DOMContentLoaded', initUi);
   } else {
     initUi();
+  }
+})();
+</script>
+
+<!-- SCRIPT: DOCUMENTAÇÃO (Google Docs viewer) -->
+<script>
+(() => {
+  'use strict';
+
+  const DOC_ID = '1Ppku7G25tLoQAgeY9sZ9DzgUvHgA3fv6uYUJYAVBCs8';
+  const CACHE_KEY = 'rf_docs_viewer_v1';
+  // Ordem de tentativas: preview (melhor para “anyone with the link”), depois /pub se publicado
+  const SOURCES = [
+    { id: 'preview', url: 'https://docs.google.com/document/d/' + DOC_ID + '/preview' },
+    { id: 'embed', url: 'https://docs.google.com/document/d/' + DOC_ID + '/edit?usp=sharing&rm=minimal' }
+  ];
+  const LOAD_TIMEOUT_MS = 14000;
+
+  const $ = (id) => document.getElementById(id);
+  const frame = $('rf-docs-frame');
+  const loading = $('rf-docs-loading');
+  const errorEl = $('rf-docs-error');
+  const statusEl = $('rf-docs-status');
+  const cacheEl = $('rf-docs-cache');
+  const errorText = $('rf-docs-error-text');
+
+  if (!frame || !loading || !errorEl) return;
+
+  let loadedOnce = false;
+  let loadTimer = null;
+  let sourceIndex = 0;
+  let attemptToken = 0;
+
+  function setStatus(state, label) {
+    if (!statusEl) return;
+    statusEl.dataset.state = state;
+    statusEl.textContent = label;
+  }
+
+  function setCacheHint(iso) {
+    if (!cacheEl) return;
+    if (!iso) {
+      cacheEl.hidden = true;
+      cacheEl.textContent = '';
+      return;
+    }
+    try {
+      const t = new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+      }).format(new Date(iso));
+      cacheEl.hidden = false;
+      cacheEl.textContent = 'Última carga ok: ' + t;
+    } catch (e) {
+      cacheEl.hidden = true;
+    }
+  }
+
+  function readCache() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+      return raw && typeof raw === 'object' ? raw : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function writeCache(partial) {
+    try {
+      const prev = readCache() || {};
+      localStorage.setItem(CACHE_KEY, JSON.stringify(Object.assign({}, prev, partial)));
+    } catch (e) {}
+  }
+
+  function showLoading() {
+    loading.hidden = false;
+    errorEl.hidden = true;
+    frame.hidden = true;
+    setStatus('loading', 'Carregando documento…');
+  }
+
+  function showReady() {
+    loading.hidden = true;
+    errorEl.hidden = true;
+    frame.hidden = false;
+    loadedOnce = true;
+    const now = new Date().toISOString();
+    writeCache({ lastOkAt: now, lastSource: SOURCES[sourceIndex] && SOURCES[sourceIndex].id });
+    setCacheHint(now);
+    setStatus('ready', 'Documento carregado');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function showError(msg) {
+    loading.hidden = true;
+    frame.hidden = true;
+    errorEl.hidden = false;
+    if (errorText && msg) errorText.textContent = msg;
+    setStatus('error', 'Indisponível no momento');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function clearTimer() {
+    if (loadTimer) {
+      clearTimeout(loadTimer);
+      loadTimer = null;
+    }
+  }
+
+  function trySource(index) {
+    clearTimer();
+    sourceIndex = index;
+    const token = ++attemptToken;
+    const src = SOURCES[index];
+    if (!src) {
+      showError(
+        'O Google Docs bloqueou a visualização embutida. Compartilhe o arquivo como “Qualquer pessoa com o link” (Visualizador) ou publique na web, depois clique em Atualizar. Enquanto isso, use “Abrir no Docs”.'
+      );
+      return;
+    }
+
+    showLoading();
+    // Força reload limpo
+    frame.removeAttribute('src');
+    // Delay mínimo para o browser aplicar hidden/show sem flash
+    requestAnimationFrame(() => {
+      if (token !== attemptToken) return;
+      frame.src = src.url + (src.url.indexOf('?') > -1 ? '&' : '?') + 't=' + Date.now();
+    });
+
+    loadTimer = setTimeout(() => {
+      if (token !== attemptToken) return;
+      // Timeout: tenta próxima fonte ou erro
+      if (index + 1 < SOURCES.length) {
+        trySource(index + 1);
+      } else {
+        showError(
+          'Tempo esgotado ao carregar o documento. Verifique se o arquivo está compartilhado para “Qualquer pessoa com o link” e se sua sessão do Google permite visualização, ou abra diretamente no Google Docs.'
+        );
+      }
+    }, LOAD_TIMEOUT_MS);
+  }
+
+  function load(force) {
+    const cache = readCache();
+    if (cache && cache.lastOkAt) setCacheHint(cache.lastOkAt);
+    if (!force && loadedOnce && frame.src) {
+      // Já visível: só reexibe
+      showReady();
+      return;
+    }
+    trySource(0);
+  }
+
+  frame.addEventListener('load', () => {
+    clearTimer();
+    // Não há acesso ao DOM interno (cross-origin). load dispara também em páginas de login do Google.
+    // Heurística: se o iframe carregou, consideramos “ready” e deixamos o usuário ver o conteúdo
+    // (login wall ou documento). Se preferir forçar erro quando privado, o timeout cobre casos sem load.
+    showReady();
+  });
+
+  frame.addEventListener('error', () => {
+    clearTimer();
+    if (sourceIndex + 1 < SOURCES.length) trySource(sourceIndex + 1);
+    else showError('Falha de rede ao carregar o documento.');
+  });
+
+  const refreshBtn = $('rf-docs-refresh');
+  const retryBtn = $('rf-docs-retry');
+  if (refreshBtn) refreshBtn.addEventListener('click', () => load(true));
+  if (retryBtn) retryBtn.addEventListener('click', () => load(true));
+
+  // Carrega na primeira vez que a aba Documentação é ativada
+  document.querySelectorAll('.nav-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      if (tab.dataset.view === 'docs') {
+        // Aguarda o painel ficar active no handler existente
+        setTimeout(() => load(false), 0);
+      }
+    });
+  });
+
+  // Se a página já abrir com hash #docs
+  if (location.hash === '#docs') {
+    const tab = document.querySelector('.nav-tab[data-view="docs"]');
+    if (tab) tab.click();
   }
 })();
 </script>
