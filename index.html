@@ -3735,7 +3735,6 @@ header {
     </section>
 
     <!-- CONTROLE DE HORAS EXTRAS (UNIFICADO) -->
-    <!-- CONTROLE DE HORAS EXTRAS (UNIFICADO) -->
     <aside class="side-column">
       <section id="controle-ponto" class="card ponto-card">
         <div class="extras-head" style="margin-bottom: 14px;">
@@ -3789,79 +3788,121 @@ header {
         <div id="extras-list" class="extras-list" style="margin-top: 14px;"></div>
       </section>
     </aside>
+  </div>
+</main>
 
-    <!-- Modal: Configuração de Taxas (Horas Extras) -->
-    <div id="extras-modal-overlay" class="macro-modal-overlay" data-open="false" aria-hidden="true">
-      <div class="macro-modal" role="dialog" aria-modal="true" aria-labelledby="extras-settings-title" id="extras-modal">
-        <div class="macro-modal-head">
-          <div class="macro-modal-head-left">
-            <h2 id="extras-settings-title" class="title">Configuração de Taxas</h2>
-          </div>
-          <button type="button" id="extras-modal-close" class="btn ghost macro-modal-close" title="Fechar" aria-label="Fechar">
-            <i data-lucide="x"></i>
-          </button>
-        </div>
-        <div class="macro-modal-body">
-          <div class="group">
-            <label for="extras-rate-60">Taxa 60% (Segunda a Sábado) R$/h</label>
-            <input id="extras-rate-60" type="text" inputmode="decimal" placeholder="16,70">
-          </div>
-          <div class="group">
-            <label for="extras-rate-100">Taxa 100% (Domingos e Feriados) R$/h</label>
-            <input id="extras-rate-100" type="text" inputmode="decimal" placeholder="20,90">
-          </div>
-          <div class="hint" style="margin-bottom: 16px;">Base salarial padrão: R$ 2.300,00. As alterações atualizam os cálculos imediatamente.</div>
-          <div class="macro-form-actions">
-            <button type="button" id="extras-settings-save" class="btn primary macro-modal-submit">Salvar taxas</button>
-            <button type="button" id="extras-settings-reset" class="btn">Restaurar padrão</button>
-          </div>
-        </div>
+<!-- Modal: Configuração de Taxas (Horas Extras) -->
+<div id="extras-modal-overlay" class="macro-modal-overlay" data-open="false" aria-hidden="true">
+  <div class="macro-modal" role="dialog" aria-modal="true" aria-labelledby="extras-settings-title" id="extras-modal">
+    <div class="macro-modal-head">
+      <div class="macro-modal-head-left">
+        <h2 id="extras-settings-title" class="title">Configuração de Taxas</h2>
+      </div>
+      <button type="button" id="extras-modal-close" class="btn ghost macro-modal-close" title="Fechar" aria-label="Fechar">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="macro-modal-body">
+      <div class="group">
+        <label for="extras-rate-60">Taxa 60% (Segunda a Sábado) R$/h</label>
+        <input id="extras-rate-60" type="text" inputmode="decimal" placeholder="16,70">
+      </div>
+      <div class="group">
+        <label for="extras-rate-100">Taxa 100% (Domingos e Feriados) R$/h</label>
+        <input id="extras-rate-100" type="text" inputmode="decimal" placeholder="20,90">
+      </div>
+      <div class="hint" style="margin-bottom: 16px;">Base salarial padrão: R$ 2.300,00. As alterações atualizam os cálculos imediatamente.</div>
+      <div class="macro-form-actions">
+        <button type="button" id="extras-settings-save" class="btn primary macro-modal-submit">Salvar taxas</button>
+        <button type="button" id="extras-settings-reset" class="btn">Restaurar padrão</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT INTERNO DA EQUIPE -->
+<button type="button" id="rf-chat-fab" class="rf-chat-fab" title="Chat da equipe" aria-label="Abrir chat da equipe" data-open="false">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
+  <span id="rf-chat-badge" class="rf-chat-badge" data-show="false">0</span>
+</button>
+
+<aside id="rf-chat-panel" class="rf-chat-panel" data-open="false" aria-label="Chat da equipe">
+  <div class="rf-chat-head">
+    <div class="rf-chat-head-title">
+      <span id="rf-chat-dot" class="rf-chat-status-dot" data-online="false" aria-hidden="true"></span>
+      <div>
+        <strong id="rf-chat-title">Chat da equipe</strong>
+        <span id="rf-chat-subtitle">Rodrigo Facilidades</span>
+        <span id="rf-chat-mode-pill" class="rf-chat-mode-pill" data-show="false">Privado · só vocês dois veem</span>
+      </div>
+    </div>
+    <div class="rf-chat-head-actions">
+      <button type="button" id="rf-chat-back" class="rf-chat-icon-btn rf-chat-back" title="Voltar ao chat da equipe" aria-label="Voltar ao chat da equipe" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+      </button>
+      <button type="button" id="rf-chat-logout" class="rf-chat-icon-btn" title="Sair" aria-label="Sair" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+      </button>
+      <button type="button" id="rf-chat-close" class="rf-chat-icon-btn" title="Fechar" aria-label="Fechar chat" style="color:var(--text-secondary)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="rf-chat-userbar" class="rf-chat-userbar" data-show="false">
+    <span>Conectado como <strong id="rf-chat-user-label">—</strong></span>
+  </div>
+
+  <div id="rf-chat-tabs" class="rf-chat-tabs" data-show="false" role="tablist" aria-label="Conversas"></div>
+
+  <div class="rf-chat-body">
+    <div id="rf-chat-setup" class="rf-chat-setup">
+      <h3>Configuração necessária</h3>
+      <p>O chat usa <strong>Supabase</strong> (plano gratuito). A chave anônima pode ficar no código — a proteção real vem de <strong>login + RLS</strong>.</p>
+      <ol>
+        <li>Crie um projeto em <code>supabase.com</code></li>
+        <li>Em <strong>SQL Editor</strong>, rode o script SQL do comentário no final desta página</li>
+        <li>Em <strong>Authentication → Providers</strong>, ative Email</li>
+        <li>Em <strong>Project Settings → API</strong>, copie URL e <code>anon public</code> key</li>
+        <li>Cole em <code>RF_CHAT_CONFIG</code> no JavaScript do chat</li>
+      </ol>
+      <div class="rf-chat-warn">
+        <strong>Segurança:</strong> nunca compartilhe dados de clientes, senhas ou tokens neste chat. Use apenas para alinhamento interno. Prefira Slack/Teams/Discord da empresa para assuntos sensíveis.
       </div>
     </div>
 
-        <!-- KPIs Unificados: Horas Feitas + Valor a Receber -->
-        <div class="ponto-metrics" style="grid-template-columns: 1fr 1fr; margin-bottom: 14px;">
-          <div class="ponto-metric" style="border-radius: 10px; padding: 12px 8px;">
-            <span>Total de Horas</span>
-            <strong id="extras-total-hours" style="color: var(--accent); font-size: 18px;">00:00</strong>
-          </div>
-          <div class="ponto-metric" style="border-radius: 10px; padding: 12px 8px;">
-            <span>Total a Receber</span>
-            <strong id="extras-total-value" style="color: var(--green); font-size: 18px;">R$ 0,00</strong>
-          </div>
+    <div id="rf-chat-auth" class="rf-chat-auth" hidden>
+      <div class="rf-chat-auth-card">
+        <h3>Entrar no chat</h3>
+        <p>Use um <strong>nome de usuário</strong> e uma senha. Não é necessário e-mail. Escolha um nome único na equipe.</p>
+        <div class="rf-chat-field">
+          <label for="rf-chat-display">Nome de usuário</label>
+          <input id="rf-chat-display" type="text" maxlength="40" autocomplete="username" placeholder="Ex.: rodrigo" required>
         </div>
+        <div class="rf-chat-field">
+          <label for="rf-chat-password">Senha</label>
+          <input id="rf-chat-password" type="password" autocomplete="current-password" placeholder="Mín. 6 caracteres">
+        </div>
+        <div class="rf-chat-auth-actions">
+          <button type="button" id="rf-chat-login" class="btn primary">Entrar</button>
+          <button type="button" id="rf-chat-signup" class="btn">Criar conta</button>
+        </div>
+        <p id="rf-chat-auth-msg" class="rf-chat-auth-msg" role="status"></p>
+      </div>
+    </div>
 
-        <!-- Formulário de Registro -->
-        <form id="extras-form" class="extras-form">
-          <div class="group">
-            <label for="extras-date">Data</label>
-            <input id="extras-date" type="date" required>
-          </div>
-          <div class="group">
-            <label for="extras-hours">Duração (HH:MM)</label>
-            <input id="extras-hours" type="text" inputmode="numeric" maxlength="5" pattern="[0-9]{1,2}:[0-5][0-9]" placeholder="Ex.: 01:30" required>
-          </div>
-          <div class="group">
-            <label>Tipo de Extra</label>
-            <div class="extras-type-pills">
-              <label class="is-active">
-                <input type="radio" name="extras-type" value="60" checked>
-                60% (seg–sáb)
-              </label>
-              <label>
-                <input type="radio" name="extras-type" value="100">
-                100% (dom/fer)
-              </label>
-            </div>
-          </div>
-          <div id="extras-preview" class="extras-preview">Informe a duração para ver o valor</div>
-          <button type="submit" class="btn primary" style="width:100%;">Registrar Hora Extra</button>
-        </form>
+    <div id="rf-chat-messages-wrap" class="rf-chat-messages-wrap" hidden>
+      <div id="rf-chat-messages" class="rf-chat-messages"></div>
+    </div>
+  </div>
 
-        <!-- Histórico por Ciclo -->
-        <div id="extras-list" class="extras-list" style="margin-top: 14px;"></div>
-      </section>
-    </aside>
+  <form id="rf-chat-compose" class="rf-chat-compose" data-show="false" autocomplete="off">
+    <textarea id="rf-chat-input" rows="1" maxlength="2000" placeholder="Mensagem para a equipe…" disabled></textarea>
+    <button type="submit" id="rf-chat-send" class="rf-chat-send" disabled title="Enviar" aria-label="Enviar">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+    </button>
+  </form>
+</aside>
 
 <div id="toast" role="status" aria-live="polite"></div>
 
