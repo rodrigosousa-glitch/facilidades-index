@@ -6,6 +6,9 @@
   <title>Rodrigo Facilidades — Gestão de Macros e Ponto</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://docs.google.com" crossorigin>
+  <link rel="dns-prefetch" href="https://docs.google.com">
+  <link rel="dns-prefetch" href="https://lh3.googleusercontent.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script>
@@ -3570,7 +3573,6 @@ header {
               id="rf-docs-frame"
               class="rf-docs-frame"
               title="Documentação Rodrigo Facilidades"
-              loading="lazy"
               referrerpolicy="no-referrer-when-downgrade"
               allow="fullscreen"
               hidden
@@ -7274,12 +7276,12 @@ function render() {
 
   const DOC_ID = '1Ppku7G25tLoQAgeY9sZ9DzgUvHgA3fv6uYUJYAVBCs8';
   const CACHE_KEY = 'rf_docs_viewer_v1';
-  // Ordem de tentativas: preview (melhor para “anyone with the link”), depois /pub se publicado
   const SOURCES = [
     { id: 'preview', url: 'https://docs.google.com/document/d/' + DOC_ID + '/preview' },
     { id: 'embed', url: 'https://docs.google.com/document/d/' + DOC_ID + '/edit?usp=sharing&rm=minimal' }
   ];
-  const LOAD_TIMEOUT_MS = 14000;
+  const LOAD_TIMEOUT_MS = 12000;
+  const PREFETCH_DELAY_MS = 1800;
 
   const $ = (id) => document.getElementById(id);
   const frame = $('rf-docs-frame');
@@ -7295,6 +7297,9 @@ function render() {
   let loadTimer = null;
   let sourceIndex = 0;
   let attemptToken = 0;
+  let loadingInFlight = false;
+  let preferredSource = 0;
+  let userVisible = false;
 
   function setStatus(state, label) {
     if (!statusEl) return;
@@ -7337,6 +7342,7 @@ function render() {
   }
 
   function showLoading() {
+    if (!userVisible && loadedOnce) return;
     loading.hidden = false;
     errorEl.hidden = true;
     frame.hidden = true;
@@ -7348,14 +7354,22 @@ function render() {
     errorEl.hidden = true;
     frame.hidden = false;
     loadedOnce = true;
+    loadingInFlight = false;
     const now = new Date().toISOString();
-    writeCache({ lastOkAt: now, lastSource: SOURCES[sourceIndex] && SOURCES[sourceIndex].id });
+    const srcId = SOURCES[sourceIndex] && SOURCES[sourceIndex].id;
+    writeCache({ lastOkAt: now, lastSource: srcId });
+    preferredSource = sourceIndex;
     setCacheHint(now);
     setStatus('ready', 'Documento carregado');
     if (window.lucide) lucide.createIcons();
   }
 
   function showError(msg) {
+    loadingInFlight = false;
+    if (!userVisible) {
+      setStatus('idle', 'Aguardando…');
+      return;
+    }
     loading.hidden = true;
     frame.hidden = true;
     errorEl.hidden = false;
@@ -7371,7 +7385,13 @@ function render() {
     }
   }
 
-  function trySource(index) {
+  function buildUrl(src, bust) {
+    const base = src.url;
+    if (!bust) return base;
+    return base + (base.indexOf('?') > -1 ? '&' : '?') + 't=' + Date.now();
+  }
+
+  function trySource(index, forceBust) {
     clearTimer();
     sourceIndex = index;
     const token = ++attemptToken;
@@ -7383,20 +7403,32 @@ function render() {
       return;
     }
 
+    loadingInFlight = true;
     showLoading();
-    // Força reload limpo
-    frame.removeAttribute('src');
-    // Delay mínimo para o browser aplicar hidden/show sem flash
+
+    const currentSrc = frame.getAttribute('src') || '';
+    const targetUrl = buildUrl(src, !!forceBust);
+
+    if (!forceBust && currentSrc && currentSrc.split('?')[0] === targetUrl.split('?')[0] && loadedOnce) {
+      showReady();
+      return;
+    }
+
+    if (forceBust) frame.removeAttribute('src');
+
     requestAnimationFrame(() => {
       if (token !== attemptToken) return;
-      frame.src = src.url + (src.url.indexOf('?') > -1 ? '&' : '?') + 't=' + Date.now();
+      if (frame.getAttribute('src') !== targetUrl) {
+        frame.src = targetUrl;
+      } else if (loadedOnce) {
+        showReady();
+      }
     });
 
     loadTimer = setTimeout(() => {
       if (token !== attemptToken) return;
-      // Timeout: tenta próxima fonte ou erro
       if (index + 1 < SOURCES.length) {
-        trySource(index + 1);
+        trySource(index + 1, forceBust);
       } else {
         showError(
           'Tempo esgotado ao carregar o documento. Verifique se o arquivo está compartilhado para “Qualquer pessoa com o link” e se sua sessão do Google permite visualização, ou abra diretamente no Google Docs.'
@@ -7408,44 +7440,83 @@ function render() {
   function load(force) {
     const cache = readCache();
     if (cache && cache.lastOkAt) setCacheHint(cache.lastOkAt);
-    if (!force && loadedOnce && frame.src) {
-      // Já visível: só reexibe
+    if (cache && cache.lastSource === 'embed') preferredSource = 1;
+    else if (cache && cache.lastSource === 'preview') preferredSource = 0;
+
+    if (!force && loadedOnce && frame.getAttribute('src')) {
       showReady();
       return;
     }
-    trySource(0);
+
+    if (!force && loadingInFlight && frame.getAttribute('src')) {
+      showLoading();
+      return;
+    }
+
+    trySource(preferredSource || 0, !!force);
+  }
+
+  function prefetch() {
+    if (loadedOnce || loadingInFlight) return;
+    if (frame.getAttribute('src')) return;
+    trySource(preferredSource || 0, false);
   }
 
   frame.addEventListener('load', () => {
     clearTimer();
-    // Não há acesso ao DOM interno (cross-origin). load dispara também em páginas de login do Google.
-    // Heurística: se o iframe carregou, consideramos “ready” e deixamos o usuário ver o conteúdo
-    // (login wall ou documento). Se preferir forçar erro quando privado, o timeout cobre casos sem load.
     showReady();
   });
 
   frame.addEventListener('error', () => {
     clearTimer();
-    if (sourceIndex + 1 < SOURCES.length) trySource(sourceIndex + 1);
+    if (sourceIndex + 1 < SOURCES.length) trySource(sourceIndex + 1, false);
     else showError('Falha de rede ao carregar o documento.');
   });
 
   const refreshBtn = $('rf-docs-refresh');
   const retryBtn = $('rf-docs-retry');
-  if (refreshBtn) refreshBtn.addEventListener('click', () => load(true));
-  if (retryBtn) retryBtn.addEventListener('click', () => load(true));
+  if (refreshBtn) refreshBtn.addEventListener('click', () => {
+    userVisible = true;
+    loadedOnce = false;
+    load(true);
+  });
+  if (retryBtn) retryBtn.addEventListener('click', () => {
+    userVisible = true;
+    loadedOnce = false;
+    load(true);
+  });
 
-  // Carrega na primeira vez que a aba Documentação é ativada
   document.querySelectorAll('.nav-tab').forEach((tab) => {
     tab.addEventListener('click', () => {
       if (tab.dataset.view === 'docs') {
-        // Aguarda o painel ficar active no handler existente
+        userVisible = true;
         setTimeout(() => load(false), 0);
+      } else {
+        userVisible = false;
       }
     });
+    if (tab.dataset.view === 'docs') {
+      tab.addEventListener('pointerenter', () => { prefetch(); }, { passive: true });
+      tab.addEventListener('focus', () => { prefetch(); });
+    }
   });
 
-  // Se a página já abrir com hash #docs
+  function schedulePrefetch() {
+    const run = () => { prefetch(); };
+    if (typeof requestIdleCallback === 'function') {
+      requestIdleCallback(run, { timeout: PREFETCH_DELAY_MS + 2000 });
+    } else {
+      setTimeout(run, PREFETCH_DELAY_MS);
+    }
+  }
+
+  const cache = readCache();
+  if (cache && cache.lastOkAt) setCacheHint(cache.lastOkAt);
+  if (cache && cache.lastSource === 'embed') preferredSource = 1;
+
+  if (document.readyState === 'complete') schedulePrefetch();
+  else window.addEventListener('load', schedulePrefetch, { once: true });
+
   if (location.hash === '#docs') {
     const tab = document.querySelector('.nav-tab[data-view="docs"]');
     if (tab) tab.click();
