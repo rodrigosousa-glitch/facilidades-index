@@ -3734,242 +3734,134 @@ header {
 
     </section>
 
-    <!-- CONTROLE DE PONTO -->
+    <!-- CONTROLE DE HORAS EXTRAS (UNIFICADO) -->
+    <!-- CONTROLE DE HORAS EXTRAS (UNIFICADO) -->
     <aside class="side-column">
       <section id="controle-ponto" class="card ponto-card">
-        <div class="ponto-top">
+        <div class="extras-head" style="margin-bottom: 14px;">
           <div>
-            <h2 class="title">Controle de ponto</h2>
-            <p class="ponto-kicker">Meta semanal: 04:00 para folga no sábado</p>
+            <h2 class="title">Horas Extras</h2>
+            <p class="ponto-kicker" style="margin-top: 2px;">Apuração por ciclo (26 ao 25)</p>
           </div>
-          <span id="ponto-state" class="ponto-state" data-state="closed">Fora do turno</span>
+          <button type="button" id="extras-settings-toggle" class="btn ghost extras-settings-btn" title="Configurar valores/hora" aria-label="Configurar valores por hora">⚙️</button>
         </div>
 
-        <div class="ponto-tabs" role="tablist" aria-label="Modo do ponto">
-          <button type="button" class="ponto-tab active" data-ponto-tab="banco" role="tab" aria-selected="true">🏢 Extras Folga Sábado</button>
-          <button type="button" class="ponto-tab" data-ponto-tab="extras" role="tab" aria-selected="false">💰 Extras Pagas</button>
+        <!-- KPIs Unificados: Horas Feitas + Valor a Receber -->
+        <div class="ponto-metrics" style="grid-template-columns: 1fr 1fr; margin-bottom: 14px;">
+          <div class="ponto-metric" style="border-radius: 10px; padding: 12px 8px;">
+            <span>Total de Horas</span>
+            <strong id="extras-total-hours" style="color: var(--accent); font-size: 18px;">00:00</strong>
+          </div>
+          <div class="ponto-metric" style="border-radius: 10px; padding: 12px 8px;">
+            <span>Total a Receber</span>
+            <strong id="extras-total-value" style="color: var(--green); font-size: 18px;">R$ 0,00</strong>
+          </div>
         </div>
 
-        <div id="ponto-panel-banco" class="ponto-tab-panel active" role="tabpanel">
-          <div class="ponto-actions">
-            <button id="ponto-entry" class="btn primary" type="button">Registrar entrada</button>
-            <button id="ponto-exit" class="btn ghost" type="button">Registrar saída</button>
-            <button id="ponto-adjust-toggle" class="btn accent" type="button">Ajustar horas</button>
+        <!-- Formulário de Registro -->
+        <form id="extras-form" class="extras-form">
+          <div class="group">
+            <label for="extras-date">Data</label>
+            <input id="extras-date" type="date" required>
           </div>
-
-          <p id="ponto-live" class="ponto-live" role="status" aria-live="polite">Nenhuma entrada aberta hoje.</p>
-
-          <div class="ponto-metrics">
-            <div class="ponto-metric">
-              <span>Hoje</span>
-              <strong id="ponto-today">00:00</strong>
-            </div>
-            <div class="ponto-metric">
-              <span>Semana</span>
-              <strong id="ponto-week">00:00</strong>
-            </div>
-            <div class="ponto-metric">
-              <span>Saldo</span>
-              <strong id="ponto-balance">−04:00</strong>
-            </div>
+          <div class="group">
+            <label for="extras-hours">Duração (HH:MM)</label>
+            <input id="extras-hours" type="text" inputmode="numeric" maxlength="5" pattern="[0-9]{1,2}:[0-5][0-9]" placeholder="Ex.: 01:30" required>
           </div>
-
-          <div class="ponto-progress-label">
-            <span>Progresso semanal</span>
-            <span id="ponto-progress-text">00:00 de 04:00</span>
-          </div>
-          <div class="ponto-progress">
-            <span id="ponto-progress-bar" class="ponto-progress-bar"></span>
-          </div>
-
-          <p id="ponto-goal" class="ponto-goal" data-ready="false">Faltam 04:00 para a folga no sábado.</p>
-
-          <details class="ponto-adjust" id="ponto-adjust-panel">
-            <summary>Ajustar horas manualmente</summary>
-            <div class="ponto-adjust-body">
-              <form id="ponto-adjust-form">
-                <input id="ponto-adjust-id" type="hidden">
-                <div class="ponto-fields">
-                  <div>
-                    <label for="ponto-adjust-date">Data</label>
-                    <input id="ponto-adjust-date" type="date" required>
-                  </div>
-                  <div>
-                    <label for="ponto-adjust-hours">Duração (HH:MM)</label>
-                    <input id="ponto-adjust-hours" type="text" inputmode="numeric" maxlength="5" pattern="[0-9]{1,2}:[0-5][0-9]" placeholder="Ex.: 08:15" required>
-                  </div>
-                  <div>
-                    <label for="ponto-adjust-direction">Operação</label>
-                    <select id="ponto-adjust-direction">
-                      <option value="add">Adicionar horas</option>
-                      <option value="remove">Remover horas</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label for="ponto-adjust-note">Motivo</label>
-                    <input id="ponto-adjust-note" type="text" maxlength="120" placeholder="Ex.: Ajuste de segunda">
-                  </div>
-                </div>
-                <div style="display:flex; gap:6px; margin-top:12px;">
-                  <button id="ponto-adjust-submit" class="btn primary small" type="submit">Salvar ajuste</button>
-                  <button id="ponto-adjust-cancel" class="btn small hidden" type="button">Cancelar</button>
-                </div>
-                <p class="hint">Formato HH:MM (ex: 01:30). Altera imediatamente o saldo semanal.</p>
-              </form>
-            </div>
-          </details>
-
-          <div id="ponto-records" class="ponto-records"></div>
-        </div>
-
-        <div id="ponto-panel-extras" class="ponto-tab-panel" role="tabpanel">
-          <div class="extras-head">
-            <div>
-              <div class="title" style="font-size:13px;">Extras pagas (R$)</div>
-              <div class="hint">Acúmulo por ciclo 26→25</div>
-            </div>
-            <button type="button" id="extras-settings-toggle" class="btn ghost extras-settings-btn" title="Configurar valores/hora" aria-label="Configurar valores por hora">⚙️</button>
-          </div>
-
-          <div id="extras-settings" class="extras-settings" hidden>
-            <div class="extras-settings-grid">
-              <div>
-                <label for="extras-rate-60">60% (seg–sáb) R$/h</label>
-                <input id="extras-rate-60" type="text" inputmode="decimal" placeholder="16,70">
-              </div>
-              <div>
-                <label for="extras-rate-100">100% (dom/fer) R$/h</label>
-                <input id="extras-rate-100" type="text" inputmode="decimal" placeholder="20,90">
-              </div>
-            </div>
-            <p class="hint">Base de referência: R$ 2.300,00. Só o valor da hora extra entra no total.</p>
-            <div style="display:flex; gap:6px; margin-top:10px;">
-              <button type="button" id="extras-settings-save" class="btn primary small">Salvar taxas</button>
-              <button type="button" id="extras-settings-reset" class="btn small ghost">Padrão</button>
+          <div class="group">
+            <label>Tipo de Extra</label>
+            <div class="extras-type-pills">
+              <label class="is-active">
+                <input type="radio" name="extras-type" value="60" checked>
+                60% (seg–sáb)
+              </label>
+              <label>
+                <input type="radio" name="extras-type" value="100">
+                100% (dom/fer)
+              </label>
             </div>
           </div>
+          <div id="extras-preview" class="extras-preview">Informe a duração para ver o valor</div>
+          <button type="submit" class="btn primary" style="width:100%;">Registrar Hora Extra</button>
+        </form>
 
-          <div class="extras-total">
-            <span>Total acumulado (extras)</span>
-            <strong id="extras-total-value">R$ 0,00</strong>
-          </div>
-
-          <form id="extras-form" class="extras-form">
-            <div class="group">
-              <label for="extras-date">Data</label>
-              <input id="extras-date" type="date" required>
-            </div>
-            <div class="group">
-              <label for="extras-hours">Duração (HH:MM)</label>
-              <input id="extras-hours" type="text" inputmode="numeric" maxlength="5" pattern="[0-9]{1,2}:[0-5][0-9]" placeholder="Ex.: 01:04" required>
-            </div>
-            <div class="group">
-              <label>Tipo</label>
-              <div class="extras-type-pills">
-                <label class="is-active">
-                  <input type="radio" name="extras-type" value="60" checked>
-                  60% (seg–sáb)
-                </label>
-                <label>
-                  <input type="radio" name="extras-type" value="100">
-                  100% (dom/fer)
-                </label>
-              </div>
-            </div>
-            <div id="extras-preview" class="extras-preview">Informe a duração para ver o valor</div>
-            <button type="submit" class="btn primary" style="width:100%;">Registrar Extra Paga</button>
-          </form>
-
-          <div id="extras-list" class="extras-list"></div>
-        </div>
+        <!-- Histórico por Ciclo -->
+        <div id="extras-list" class="extras-list" style="margin-top: 14px;"></div>
       </section>
     </aside>
-  </div>
-</main>
 
-<!-- CHAT INTERNO DA EQUIPE -->
-<button type="button" id="rf-chat-fab" class="rf-chat-fab" title="Chat da equipe" aria-label="Abrir chat da equipe" data-open="false">
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
-  <span id="rf-chat-badge" class="rf-chat-badge" data-show="false">0</span>
-</button>
-
-<aside id="rf-chat-panel" class="rf-chat-panel" data-open="false" aria-label="Chat da equipe">
-  <div class="rf-chat-head">
-    <div class="rf-chat-head-title">
-      <span id="rf-chat-dot" class="rf-chat-status-dot" data-online="false" aria-hidden="true"></span>
-      <div>
-        <strong id="rf-chat-title">Chat da equipe</strong>
-        <span id="rf-chat-subtitle">Rodrigo Facilidades</span>
-        <span id="rf-chat-mode-pill" class="rf-chat-mode-pill" data-show="false">Privado · só vocês dois veem</span>
-      </div>
-    </div>
-    <div class="rf-chat-head-actions">
-      <button type="button" id="rf-chat-back" class="rf-chat-icon-btn rf-chat-back" title="Voltar ao chat da equipe" aria-label="Voltar ao chat da equipe" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-      </button>
-      <button type="button" id="rf-chat-logout" class="rf-chat-icon-btn" title="Sair" aria-label="Sair" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-      </button>
-      <button type="button" id="rf-chat-close" class="rf-chat-icon-btn" title="Fechar" aria-label="Fechar chat" style="color:var(--text-secondary)">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-  </div>
-
-  <div id="rf-chat-userbar" class="rf-chat-userbar" data-show="false">
-    <span>Conectado como <strong id="rf-chat-user-label">—</strong></span>
-  </div>
-
-  <div id="rf-chat-tabs" class="rf-chat-tabs" data-show="false" role="tablist" aria-label="Conversas"></div>
-
-  <div class="rf-chat-body">
-    <div id="rf-chat-setup" class="rf-chat-setup">
-      <h3>Configuração necessária</h3>
-      <p>O chat usa <strong>Supabase</strong> (plano gratuito). A chave anônima pode ficar no código — a proteção real vem de <strong>login + RLS</strong>.</p>
-      <ol>
-        <li>Crie um projeto em <code>supabase.com</code></li>
-        <li>Em <strong>SQL Editor</strong>, rode o script SQL do comentário no final desta página</li>
-        <li>Em <strong>Authentication → Providers</strong>, ative Email</li>
-        <li>Em <strong>Project Settings → API</strong>, copie URL e <code>anon public</code> key</li>
-        <li>Cole em <code>RF_CHAT_CONFIG</code> no JavaScript do chat</li>
-      </ol>
-      <div class="rf-chat-warn">
-        <strong>Segurança:</strong> nunca compartilhe dados de clientes, senhas ou tokens neste chat. Use apenas para alinhamento interno. Prefira Slack/Teams/Discord da empresa para assuntos sensíveis.
+    <!-- Modal: Configuração de Taxas (Horas Extras) -->
+    <div id="extras-modal-overlay" class="macro-modal-overlay" data-open="false" aria-hidden="true">
+      <div class="macro-modal" role="dialog" aria-modal="true" aria-labelledby="extras-settings-title" id="extras-modal">
+        <div class="macro-modal-head">
+          <div class="macro-modal-head-left">
+            <h2 id="extras-settings-title" class="title">Configuração de Taxas</h2>
+          </div>
+          <button type="button" id="extras-modal-close" class="btn ghost macro-modal-close" title="Fechar" aria-label="Fechar">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div class="macro-modal-body">
+          <div class="group">
+            <label for="extras-rate-60">Taxa 60% (Segunda a Sábado) R$/h</label>
+            <input id="extras-rate-60" type="text" inputmode="decimal" placeholder="16,70">
+          </div>
+          <div class="group">
+            <label for="extras-rate-100">Taxa 100% (Domingos e Feriados) R$/h</label>
+            <input id="extras-rate-100" type="text" inputmode="decimal" placeholder="20,90">
+          </div>
+          <div class="hint" style="margin-bottom: 16px;">Base salarial padrão: R$ 2.300,00. As alterações atualizam os cálculos imediatamente.</div>
+          <div class="macro-form-actions">
+            <button type="button" id="extras-settings-save" class="btn primary macro-modal-submit">Salvar taxas</button>
+            <button type="button" id="extras-settings-reset" class="btn">Restaurar padrão</button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div id="rf-chat-auth" class="rf-chat-auth" hidden>
-      <div class="rf-chat-auth-card">
-        <h3>Entrar no chat</h3>
-        <p>Use um <strong>nome de usuário</strong> e uma senha. Não é necessário e-mail. Escolha um nome único na equipe.</p>
-        <div class="rf-chat-field">
-          <label for="rf-chat-display">Nome de usuário</label>
-          <input id="rf-chat-display" type="text" maxlength="40" autocomplete="username" placeholder="Ex.: rodrigo" required>
+        <!-- KPIs Unificados: Horas Feitas + Valor a Receber -->
+        <div class="ponto-metrics" style="grid-template-columns: 1fr 1fr; margin-bottom: 14px;">
+          <div class="ponto-metric" style="border-radius: 10px; padding: 12px 8px;">
+            <span>Total de Horas</span>
+            <strong id="extras-total-hours" style="color: var(--accent); font-size: 18px;">00:00</strong>
+          </div>
+          <div class="ponto-metric" style="border-radius: 10px; padding: 12px 8px;">
+            <span>Total a Receber</span>
+            <strong id="extras-total-value" style="color: var(--green); font-size: 18px;">R$ 0,00</strong>
+          </div>
         </div>
-        <div class="rf-chat-field">
-          <label for="rf-chat-password">Senha</label>
-          <input id="rf-chat-password" type="password" autocomplete="current-password" placeholder="Mín. 6 caracteres">
-        </div>
-        <div class="rf-chat-auth-actions">
-          <button type="button" id="rf-chat-login" class="btn primary">Entrar</button>
-          <button type="button" id="rf-chat-signup" class="btn">Criar conta</button>
-        </div>
-        <p id="rf-chat-auth-msg" class="rf-chat-auth-msg" role="status"></p>
-      </div>
-    </div>
 
-    <div id="rf-chat-messages-wrap" class="rf-chat-messages-wrap" hidden>
-      <div id="rf-chat-messages" class="rf-chat-messages"></div>
-    </div>
-  </div>
+        <!-- Formulário de Registro -->
+        <form id="extras-form" class="extras-form">
+          <div class="group">
+            <label for="extras-date">Data</label>
+            <input id="extras-date" type="date" required>
+          </div>
+          <div class="group">
+            <label for="extras-hours">Duração (HH:MM)</label>
+            <input id="extras-hours" type="text" inputmode="numeric" maxlength="5" pattern="[0-9]{1,2}:[0-5][0-9]" placeholder="Ex.: 01:30" required>
+          </div>
+          <div class="group">
+            <label>Tipo de Extra</label>
+            <div class="extras-type-pills">
+              <label class="is-active">
+                <input type="radio" name="extras-type" value="60" checked>
+                60% (seg–sáb)
+              </label>
+              <label>
+                <input type="radio" name="extras-type" value="100">
+                100% (dom/fer)
+              </label>
+            </div>
+          </div>
+          <div id="extras-preview" class="extras-preview">Informe a duração para ver o valor</div>
+          <button type="submit" class="btn primary" style="width:100%;">Registrar Hora Extra</button>
+        </form>
 
-  <form id="rf-chat-compose" class="rf-chat-compose" data-show="false" autocomplete="off">
-    <textarea id="rf-chat-input" rows="1" maxlength="2000" placeholder="Mensagem para a equipe…" disabled></textarea>
-    <button type="submit" id="rf-chat-send" class="rf-chat-send" disabled title="Enviar" aria-label="Enviar">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-    </button>
-  </form>
-</aside>
+        <!-- Histórico por Ciclo -->
+        <div id="extras-list" class="extras-list" style="margin-top: 14px;"></div>
+      </section>
+    </aside>
 
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -4948,272 +4840,7 @@ function render() {
 })();
 </script>
 
-<!-- SCRIPT 2: CONTROLE DE PONTO -->
-<script>
-(() => {
-  'use strict';
-  const STORAGE_KEY = 'app_ponto_data';
-  const WEEKLY_GOAL_MINUTES = 4 * 60;
-
-  const $ = id => document.getElementById(id);
-  const el = {
-    entry: $('ponto-entry'), exit: $('ponto-exit'), state: $('ponto-state'), live: $('ponto-live'),
-    today: $('ponto-today'), week: $('ponto-week'), balance: $('ponto-balance'),
-    progress: $('ponto-progress-bar'), progressText: $('ponto-progress-text'), goal: $('ponto-goal'),
-    records: $('ponto-records'), form: $('ponto-adjust-form'), formId: $('ponto-adjust-id'),
-    date: $('ponto-adjust-date'), hours: $('ponto-adjust-hours'), direction: $('ponto-adjust-direction'),
-    note: $('ponto-adjust-note'), submit: $('ponto-adjust-submit'), cancel: $('ponto-adjust-cancel'), panel: $('ponto-adjust-panel')
-  };
-
-  let data = load();
-
-  const uid = () => globalThis.crypto && crypto.randomUUID ? crypto.randomUUID() : 'ponto-' + Date.now();
-  const localDate = (val = new Date()) => { const d = new Date(val); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
-  
-  const formatDuration = mins => {
-    const m = Math.round(Number(mins) || 0);
-    const sign = m < 0 ? '−' : '';
-    const abs = Math.abs(m);
-    return sign + String(Math.floor(abs / 60)).padStart(2, '0') + ':' + String(abs % 60).padStart(2, '0');
-  };
-
-  const parseDuration = val => {
-    const match = /^(\d{1,2}):([0-5]\d)$/.exec(String(val || '').trim());
-    if (!match) return null;
-    const h = Number(match[1]), m = Number(match[2]), tot = h * 60 + m;
-    return tot < 1 || tot > 24 * 60 ? null : tot;
-  };
-
-  const formatDate = val => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(new Date(val + 'T12:00:00'));
-  const formatTime = val => new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(val));
-
-  function monday(d = new Date()) {
-    const date = new Date(d); date.setHours(0,0,0,0);
-    date.setDate(date.getDate() - ((date.getDay() + 6) % 7));
-    return date;
-  }
-
-  function weekDates() {
-    const start = monday(), dates = [];
-    for (let i = 0; i < 7; i++) {
-      const day = new Date(start); day.setDate(start.getDate() + i);
-      dates.push(localDate(day));
-    }
-    return dates;
-  }
-
-  function load() {
-    try {
-      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      return { version: 1, records: Array.isArray(raw?.records) ? raw.records : [] };
-    } catch (e) {
-      return { version: 1, records: [] };
-    }
-  }
-
-  function save() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      if (window.RFStorage) window.RFStorage.notifyChange();
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  function punchRecords(date) {
-    return data.records.filter(r => r.type === 'punch' && (r.type === 'punch' ? localDate(r.at) : r.date) === date).sort((a,b) => new Date(a.at) - new Date(b.at));
-  }
-
-  function openPunch(date) {
-    const events = punchRecords(date);
-    return events.length && events[events.length - 1].kind === 'entry' ? events[events.length - 1] : null;
-  }
-
-  function workedMinutes(date, includeOpen = false) {
-    let mins = 0, open = null;
-    for (const r of punchRecords(date)) {
-      if (r.kind === 'entry') open = r;
-      else if (open) {
-        const diff = Math.round((new Date(r.at) - new Date(open.at)) / 60000);
-        if (diff > 0) mins += diff;
-        open = null;
-      }
-    }
-    if (includeOpen && open) {
-      const diff = Math.round((Date.now() - new Date(open.at)) / 60000);
-      if (diff > 0) mins += diff;
-    }
-    const adjustments = data.records.filter(r => r.type === 'adjustment' && r.date === date).reduce((s, r) => s + r.minutes, 0);
-    return mins + adjustments;
-  }
-
-  function update() {
-    const today = localDate();
-    const open = openPunch(today);
-    const todayMins = workedMinutes(today, true);
-    
-    // Soma batidas da semana atual + TODOS os ajustes manuais cadastrados (qualquer data)
-    const currentWeekPunchMins = weekDates().reduce((s, d) => {
-      let mins = 0, op = null;
-      for (const r of punchRecords(d)) {
-        if (r.kind === 'entry') op = r;
-        else if (op) {
-          const diff = Math.round((new Date(r.at) - new Date(op.at)) / 60000);
-          if (diff > 0) mins += diff;
-          op = null;
-        }
-      }
-      if (d === today && op) {
-        const diff = Math.round((Date.now() - new Date(op.at)) / 60000);
-        if (diff > 0) mins += diff;
-      }
-      return s + mins;
-    }, 0);
-
-    const allAdjustments = data.records
-      .filter(r => r.type === 'adjustment')
-      .reduce((s, r) => s + r.minutes, 0);
-
-    const weekMins = currentWeekPunchMins + allAdjustments;
-    const balance = weekMins - WEEKLY_GOAL_MINUTES;
-    const progress = Math.max(0, Math.min(100, (weekMins / WEEKLY_GOAL_MINUTES) * 100));
-
-    el.today.textContent = formatDuration(todayMins);
-    el.week.textContent = formatDuration(weekMins);
-    el.balance.textContent = formatDuration(balance);
-    el.progress.style.width = progress + '%';
-    el.progressText.textContent = `${formatDuration(weekMins)} de ${formatDuration(WEEKLY_GOAL_MINUTES)}`;
-
-    el.state.dataset.state = open ? 'open' : 'closed';
-    el.state.textContent = open ? 'Em turno' : 'Fora do turno';
-    el.live.textContent = open ? `Entrada às ${formatTime(open.at)} · em andamento.` : 'Nenhuma entrada aberta hoje.';
-
-    if (weekMins >= WEEKLY_GOAL_MINUTES) {
-      el.goal.dataset.ready = 'true';
-      el.goal.textContent = 'Meta atingida! Você tem horas para compensar a folga no sábado.';
-    } else {
-      el.goal.dataset.ready = 'false';
-      el.goal.textContent = `Faltam ${formatDuration(WEEKLY_GOAL_MINUTES - weekMins)} para a folga no sábado.`;
-    }
-
-    renderRecords();
-  }
-
-  function recordPunch(kind) {
-    const today = localDate(), open = openPunch(today);
-    if (kind === 'entry' && open) return;
-    if (kind === 'exit' && !open) return;
-    data.records.push({ id: uid(), type: 'punch', kind: kind, at: new Date().toISOString() });
-    if (save()) update();
-  }
-
-  function resetForm() {
-    el.form.reset();
-    el.formId.value = '';
-    el.date.value = localDate();
-    el.direction.value = 'add';
-    el.submit.textContent = 'Salvar ajuste';
-    el.cancel.classList.add('hidden');
-  }
-
-  function renderRecords() {
-    // Exibe todos os registros ordenados do mais recente para o mais antigo
-    const records = data.records.slice().sort((a,b) => {
-      const timeA = a.type === 'punch' ? new Date(a.at).getTime() : new Date(a.date+'T12:00:00').getTime();
-      const timeB = b.type === 'punch' ? new Date(b.at).getTime() : new Date(b.date+'T12:00:00').getTime();
-      return timeB - timeA;
-    });
-
-    el.records.innerHTML = '<p class="ponto-records-title">Histórico de movimentações</p>';
-    if (!records.length) {
-      el.records.innerHTML += '<p style="color:var(--muted);font-size:11px;padding:6px 0;">Nenhum registro encontrado.</p>';
-      return;
-    }
-
-    records.forEach(r => {
-      const row = document.createElement('div'); row.className = 'ponto-record';
-      const isPunch = r.type === 'punch';
-      const titleText = isPunch ? (r.kind === 'entry' ? 'Entrada' : 'Saída') : `Ajuste ${r.minutes >= 0 ? '+' : ''}${formatDuration(r.minutes)}`;
-      const detailText = isPunch ? `${formatDate(localDate(r.at))} às ${formatTime(r.at)}` : `${formatDate(r.date)}${r.note ? ' · ' + r.note : ''}`;
-
-      row.innerHTML = `
-        <div class="ponto-record-copy">
-          <strong>${titleText}</strong>
-          <span>${detailText}</span>
-        </div>
-        <div class="ponto-record-actions">
-          ${!isPunch ? `<button class="btn small ghost" data-action="edit" data-id="${r.id}">Editar</button>` : ''}
-          <button class="btn small danger" data-action="del" data-id="${r.id}">Excluir</button>
-        </div>
-      `;
-      el.records.appendChild(row);
-    });
-  }
-
-  el.entry.onclick = () => recordPunch('entry');
-  el.exit.onclick = () => recordPunch('exit');
-
-  el.form.onsubmit = e => {
-    e.preventDefault();
-    const date = el.date.value;
-    const minutes = parseDuration(el.hours.value);
-    if (!date || minutes === null) {
-      alert('Informe a duração no formato HH:MM (ex: 01:30 ou 08:00).');
-      return;
-    }
-    const record = {
-      id: el.formId.value || uid(),
-      type: 'adjustment',
-      date: date,
-      minutes: el.direction.value === 'remove' ? -minutes : minutes,
-      note: el.note.value.trim()
-    };
-    const idx = data.records.findIndex(x => x.id === record.id);
-    if (idx >= 0) data.records[idx] = record; else data.records.push(record);
-
-    if (save()) { resetForm(); update(); }
-  };
-
-  el.cancel.onclick = resetForm;
-
-  el.records.onclick = e => {
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    const r = data.records.find(x => x.id === btn.dataset.id);
-    if (!r) return;
-
-    if (btn.dataset.action === 'edit' && r.type === 'adjustment') {
-      el.formId.value = r.id;
-      el.date.value = r.date;
-      el.hours.value = formatDuration(Math.abs(r.minutes));
-      el.direction.value = r.minutes >= 0 ? 'add' : 'remove';
-      el.note.value = r.note || '';
-      el.submit.textContent = 'Atualizar';
-      el.cancel.classList.remove('hidden');
-      el.panel.open = true;
-      el.hours.focus();
-    }
-    if (btn.dataset.action === 'del' && confirm('Excluir este registro?')) {
-      data.records = data.records.filter(x => x.id !== r.id);
-      if (save()) { if (el.formId.value === r.id) resetForm(); update(); }
-    }
-  };
-
-  const toggleBtn = document.getElementById('ponto-adjust-toggle');
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', () => {
-      el.panel.open = !el.panel.open;
-    });
-  }
-
-  resetForm();
-  update();
-  setInterval(update, 60000);
-})();
-</script>
-
-<!-- SCRIPT 2b: EXTRAS PAGAS (R$) -->
+<!-- SCRIPT 2: CONTROLE UNIFICADO DE HORAS EXTRAS -->
 <script>
 (() => {
   'use strict';
@@ -5224,6 +4851,18 @@ function render() {
 
   const $ = (id) => document.getElementById(id);
   const brl = (n) => (Number(n) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  let extrasToastTimer;
+  function showExtrasToast(msg, type = 'success') {
+    clearTimeout(extrasToastTimer);
+    const node = $('toast');
+    if (!node) return;
+    node.textContent = msg;
+    node.style.background = type === 'error' ? 'var(--red)' : type === 'warn' ? 'var(--amber)' : 'var(--toast-bg)';
+    node.style.color = type === 'error' ? '#fff' : 'var(--toast-color)';
+    node.style.display = 'block';
+    extrasToastTimer = setTimeout(() => { node.style.display = 'none'; }, 3000);
+  }
 
   function parseMoneyBR(raw) {
     if (raw == null) return null;
@@ -5354,17 +4993,19 @@ function render() {
       '/h = <strong>' + brl(val) + '</strong>';
   }
 
-  function totalAll() {
-    return entries.reduce((s, e) => s + (Number(e.value) || 0), 0);
-  }
-
   function renderList() {
     const list = $('extras-list');
     const totalEl = $('extras-total-value');
-    totalEl.textContent = brl(totalAll());
+    const totalHoursEl = $('extras-total-hours');
+
+    const totalMins = entries.reduce((s, e) => s + (Number(e.minutes) || 0), 0);
+    const totalVal = entries.reduce((s, e) => s + (Number(e.value) || 0), 0);
+
+    if (totalHoursEl) totalHoursEl.textContent = formatDuration(totalMins);
+    if (totalEl) totalEl.textContent = brl(totalVal);
 
     if (!entries.length) {
-      list.innerHTML = '<div class="extras-empty">Nenhuma extra paga registrada.</div>';
+      list.innerHTML = '<div class="extras-empty">Nenhuma hora extra registrada.</div>';
       return;
     }
 
@@ -5382,13 +5023,15 @@ function render() {
 
     let html = '';
     groups.forEach((items, key) => {
+      const cycleMins = items.reduce((s, e) => s + (Number(e.minutes) || 0), 0);
       const cycleTotal = items.reduce((s, e) => s + (Number(e.value) || 0), 0);
+
       html +=
         '<div class="extras-cycle">' +
         cycleLabel(key) +
-        ' — Total: <strong>' +
-        brl(cycleTotal) +
-        '</strong></div>';
+        '<br><strong>' + formatDuration(cycleMins) + '</strong> (' + brl(cycleTotal) + ')' +
+        '</div>';
+
       items.forEach((e) => {
         const typeLabel = e.type === '100' ? '100%' : '60%';
         html +=
@@ -5401,7 +5044,7 @@ function render() {
           ' · ' +
           typeLabel +
           '</strong>' +
-          '<span>Extra paga</span>' +
+          '<span>Hora Extra</span>' +
           '</div>' +
           '<div style="display:flex;align-items:center;gap:8px;">' +
           '<span class="extras-record-value">' +
@@ -5440,24 +5083,46 @@ function render() {
     });
   }
 
-  document.querySelectorAll('.ponto-tab').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const tab = btn.getAttribute('data-ponto-tab');
-      document.querySelectorAll('.ponto-tab').forEach((b) => {
-        const on = b === btn;
-        b.classList.toggle('active', on);
-        b.setAttribute('aria-selected', on ? 'true' : 'false');
-      });
-      document.querySelectorAll('.ponto-tab-panel').forEach((p) => {
-        p.classList.toggle('active', p.id === 'ponto-panel-' + tab);
-      });
-    });
-  });
+  /* Controle da Janela Modal de Taxas */
+  function openExtrasModal() {
+    const overlay = $('extras-modal-overlay');
+    if (!overlay) return;
+    fillRatesInputs();
+    overlay.dataset.open = 'true';
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('macro-modal-open');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function closeExtrasModal() {
+    const overlay = $('extras-modal-overlay');
+    if (!overlay) return;
+    overlay.dataset.open = 'false';
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('macro-modal-open');
+  }
 
   $('extras-settings-toggle').addEventListener('click', () => {
-    const panel = $('extras-settings');
-    panel.hidden = !panel.hidden;
-    if (!panel.hidden) fillRatesInputs();
+    openExtrasModal();
+    showExtrasToast('⚙️ Configuração de taxas aberta');
+  });
+
+  $('extras-modal-close').addEventListener('click', closeExtrasModal);
+
+  const modalOverlay = $('extras-modal-overlay');
+  if (modalOverlay) {
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeExtrasModal();
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const overlay = $('extras-modal-overlay');
+      if (overlay && overlay.dataset.open === 'true') {
+        closeExtrasModal();
+      }
+    }
   });
 
   $('extras-settings-save').addEventListener('click', () => {
@@ -5469,8 +5134,10 @@ function render() {
     }
     rates = { rate60: r60, rate100: r100 };
     saveRates(rates);
-    $('extras-settings').hidden = true;
+    closeExtrasModal();
     updatePreview();
+    renderList();
+    showExtrasToast('Taxas atualizadas com sucesso!');
   });
 
   $('extras-settings-reset').addEventListener('click', () => {
@@ -5478,6 +5145,8 @@ function render() {
     saveRates(rates);
     fillRatesInputs();
     updatePreview();
+    renderList();
+    showExtrasToast('Taxas restauradas para o padrão.');
   });
 
   $('extras-date').value = localDate();
@@ -5497,7 +5166,7 @@ function render() {
     const typeEl = document.querySelector('input[name="extras-type"]:checked');
     const type = typeEl ? typeEl.value : '60';
     if (!date || mins == null) {
-      alert('Informe a data e a duração no formato HH:MM (ex: 01:04).');
+      alert('Informe a data e a duração no formato HH:MM (ex: 01:30).');
       return;
     }
     const value = calcValue(mins, type);
@@ -5515,6 +5184,7 @@ function render() {
       $('extras-hours').value = '';
       updatePreview();
       renderList();
+      showExtrasToast('Hora extra registrada com sucesso!');
     }
   });
 
@@ -5522,10 +5192,14 @@ function render() {
     const btn = e.target.closest('[data-extras-del]');
     if (!btn) return;
     const id = btn.getAttribute('data-extras-del');
-    if (!confirm('Excluir este registro de extra paga?')) return;
+    
+    // Remove o item diretamente sem abrir o alerta do navegador
     entries = entries.filter((x) => x.id !== id);
     saveEntries(entries);
     renderList();
+    
+    // Exibe o Toast estilizado
+    showExtrasToast('🗑️ Registro de hora extra excluído com sucesso!', 'warn');
   });
 
   fillRatesInputs();
