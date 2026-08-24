@@ -3267,6 +3267,17 @@ header {
       pointer-events: none;
       cursor: pointer;
     }
+    /* Estilo de mensagem apagada */
+    .rf-chat-msg.is-deleted {
+      opacity: 0.65;
+      background: rgba(255, 255, 255, 0.02) !important;
+      border-style: dashed !important;
+    }
+
+    .rf-chat-msg.is-deleted .rf-chat-msg-text {
+      font-style: italic;
+      color: var(--muted);
+    }
   </style>
 </head>
 <body>
@@ -6447,7 +6458,9 @@ function render() {
     enabled: true,
     supabaseUrl: 'https://xxjrfeewwwxbujodvrvo.supabase.co',
     supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4anJmZWV3d3d4YnVqb2R2cnZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3ODA3NjAsImV4cCI6MjEwMTM1Njc2MH0.XA68lXz15ZDG9qfOGUeSf3M_S6xnld9fyBYfEPjWR5s',
-    allowedEmailDomain: ''
+    allowedEmailDomain: '',
+    // Usuários com privilégio de Admin (podem apagar mensagens de qualquer um)
+    adminUsernames: ['rodrigo'] 
   };
 
   const $ = (id) => document.getElementById(id);
@@ -6477,7 +6490,7 @@ function render() {
   const tabsEl = $('rf-chat-tabs');
   const authMsg = $('rf-chat-auth-msg');
 
-  // Elementos do Modal de Confirmação
+  // Modal de Confirmação
   const deleteModalOverlay = $('rf-chat-delete-modal-overlay');
   const deleteModalText = $('rf-delete-modal-text');
   const deleteModalConfirm = $('rf-delete-modal-confirm');
@@ -6552,7 +6565,7 @@ function render() {
   }
 
   function alertIncomingMessage(row) {
-    if (!row) return;
+    if (!row || row.is_deleted) return;
     const uid = session && session.user && session.user.id;
     if (!uid || row.user_id === uid) return;
 
@@ -6577,6 +6590,18 @@ function render() {
   // Modo de Seleção de Mensagens
   let selectionMode = false;
   let selectedMsgIds = new Set();
+
+  function isCurrentUserAdmin() {
+    if (!session || !session.user) return false;
+    const email = (session.user.email || '').toLowerCase();
+    return RF_CHAT_CONFIG.adminUsernames.some(u => email.startsWith(u.toLowerCase() + '@'));
+  }
+
+  function canDeleteMessage(msgUserId) {
+    if (!session || !session.user) return false;
+    if (isCurrentUserAdmin()) return true;
+    return session.user.id === msgUserId;
+  }
 
   function configured() {
     return !!(RF_CHAT_CONFIG.enabled && RF_CHAT_CONFIG.supabaseUrl && RF_CHAT_CONFIG.supabaseAnonKey);
@@ -6741,7 +6766,7 @@ function render() {
 
   function rowIsUnreadForMe(row) {
     const uid = session && session.user && session.user.id;
-    if (!row || !uid || row.user_id === uid) return false;
+    if (!row || !uid || row.user_id === uid || row.is_deleted) return false;
     if (!row.recipient_id) return true;
     return row.recipient_id === uid;
   }
@@ -6786,16 +6811,16 @@ function render() {
     loadHistory();
   }
 
-  /* ═══ MODAL PERSONALIZADO DE CONFIRMAÇÃO DE EXCLUSÃO ═══ */
+  /* ═══ MODAL PERSONALIZADO DE CONFIRMAÇÃO ═══ */
 
   function promptDeleteConfirmation(count) {
     return new Promise((resolve) => {
       deleteModalResolver = resolve;
       if (deleteModalText) {
         deleteModalText.innerHTML =
-          `Tem certeza que deseja apagar <strong>${count} mensagem(ns)</strong> selecionada(s)?<br><br>` +
+          `Tem certeza que deseja apagar <strong>${count} mensagem(ns)</strong>?<br><br>` +
           `<span style="color: var(--muted); font-size: 11.5px; display: block; line-height: 1.45;">` +
-          `⚠️ Esta ação apagará permanentemente as mensagens <strong>para todos no chat</strong> e não poderá ser desfeita.` +
+          `⚠️ O texto será substituído por um aviso de mensagem excluída para todos no chat.` +
           `</span>`;
       }
       if (deleteModalOverlay) {
@@ -6831,12 +6856,16 @@ function render() {
     const msgs = msgsEl.querySelectorAll('.rf-chat-msg');
     msgs.forEach((el) => {
       const id = el.dataset.id;
+      const authorId = el.dataset.userId;
+      const isDeleted = el.classList.contains('is-deleted');
+      const isAllowed = canDeleteMessage(authorId) && !isDeleted;
+
       const isSel = selectedMsgIds.has(id);
-      el.classList.toggle('is-selectable', selectionMode);
+      el.classList.toggle('is-selectable', selectionMode && isAllowed);
       el.classList.toggle('is-selected', isSel);
 
       let checkbox = el.querySelector('.rf-chat-msg-checkbox');
-      if (selectionMode) {
+      if (selectionMode && isAllowed) {
         if (!checkbox) {
           checkbox = document.createElement('input');
           checkbox.type = 'checkbox';
@@ -6878,6 +6907,12 @@ function render() {
 
   function toggleMsgSelection(msgId, el) {
     if (!selectionMode || !msgId) return;
+    const authorId = el.dataset.userId;
+    const isDeleted = el.classList.contains('is-deleted');
+    
+    // Bloqueia selecionar se não tiver permissão ou se já estiver apagada
+    if (!canDeleteMessage(authorId) || isDeleted) return;
+
     if (selectedMsgIds.has(msgId)) {
       selectedMsgIds.delete(msgId);
     } else {
@@ -6898,35 +6933,37 @@ function render() {
     const idsToDelete = Array.from(selectedMsgIds);
 
     try {
+      // Atualiza o registro no Supabase (Soft Delete)
       const { data, error } = await client
         .from('team_messages')
-        .delete()
+        .update({
+          is_deleted: true,
+          body: '🚫 Esta mensagem foi apagada'
+        })
         .in('id', idsToDelete)
         .select();
 
       if (error) throw error;
 
       if (!data || data.length === 0) {
-        alert('O banco de dados não permitiu apagar. Verifique se executou o comando SQL de permissão (RLS) no Supabase.');
+        alert('O banco de dados não permitiu apagar. Verifique as permissões de RLS no Supabase.');
         return;
       }
 
+      // Atualiza visualmente na tela local
       idsToDelete.forEach((id) => {
         const el = msgsEl.querySelector(`[data-id="${id}"]`);
-        if (el) el.remove();
-        knownIds.delete(id);
+        if (el) {
+          el.classList.add('is-deleted');
+          const txtEl = el.querySelector('.rf-chat-msg-text');
+          if (txtEl) txtEl.textContent = '🚫 Esta mensagem foi apagada';
+        }
       });
 
       exitSelectionMode();
-
-      if (msgsEl.children.length === 0) {
-        msgsEl.innerHTML = dmPeer
-          ? '<div class="rf-chat-empty">Nenhuma mensagem privada com <strong>' + esc(dmPeer.name) + '</strong>.</div>'
-          : '<div class="rf-chat-empty">Nenhuma mensagem ainda.<br>Seja o primeiro a escrever para a equipe.</div>';
-      }
     } catch (err) {
       console.error('Erro ao excluir mensagens:', err);
-      alert('Não foi possível excluir as mensagens selecionadas:\n' + (err.message || 'Erro desconhecido.'));
+      alert('Não foi possível excluir as mensagens:\n' + (err.message || 'Erro desconhecido.'));
     } finally {
       if (confirmDeleteBtn) confirmDeleteBtn.disabled = false;
     }
@@ -6934,15 +6971,30 @@ function render() {
 
   function unreadKeyForRow(row) {
     const uid = session && session.user && session.user.id;
-    if (!row || !uid || row.user_id === uid) return null;
+    if (!row || !uid || row.user_id === uid || row.is_deleted) return null;
     if (!row.recipient_id) return '__team__';
     if (row.recipient_id === uid) return row.user_id;
     return null;
   }
 
   function appendMessage(row, mine, opts) {
-    if (!row || !row.id || knownIds.has(row.id)) return;
+    if (!row || !row.id) return;
     opts = opts || {};
+
+    // Se a mensagem já existe no DOM (ex.: evento de UPDATE de exclusão)
+    if (knownIds.has(row.id)) {
+      const existing = msgsEl.querySelector(`[data-id="${row.id}"]`);
+      if (existing) {
+        if (row.is_deleted) {
+          existing.classList.add('is-deleted');
+          const textEl = existing.querySelector('.rf-chat-msg-text');
+          if (textEl) textEl.textContent = '🚫 Esta mensagem foi apagada';
+          selectedMsgIds.delete(row.id);
+          updateSelectionUi();
+        }
+      }
+      return;
+    }
 
     const uid = session && session.user && session.user.id;
     if (!mine && opts.notify) alertIncomingMessage(row);
@@ -6967,9 +7019,11 @@ function render() {
     if (empty) empty.remove();
 
     const canDm = !mine && row.user_id && session && row.user_id !== session.user.id;
+    const isDeleted = Boolean(row.is_deleted);
     const el = document.createElement('div');
-    el.className = 'rf-chat-msg' + (mine ? ' mine' : '');
+    el.className = 'rf-chat-msg' + (mine ? ' mine' : '') + (isDeleted ? ' is-deleted' : '');
     el.dataset.id = row.id;
+    el.dataset.userId = row.user_id;
 
     el.innerHTML =
       '<div class="rf-chat-msg-meta">' +
@@ -6979,7 +7033,7 @@ function render() {
         (isPrivateRow(row) ? '<span class="rf-chat-msg-time">privado</span>' : '') +
         '<span class="rf-chat-msg-time">' + esc(formatTime(row.created_at)) + '</span>' +
       '</div>' +
-      '<div class="rf-chat-msg-text">' + esc(row.body) + '</div>';
+      '<div class="rf-chat-msg-text">' + (isDeleted ? '🚫 Esta mensagem foi apagada' : esc(row.body)) + '</div>';
 
     msgsEl.appendChild(el);
 
@@ -7006,7 +7060,7 @@ function render() {
 
     const { data, error } = await client
       .from('team_messages')
-      .select('id, user_id, recipient_id, display_name, body, created_at')
+      .select('id, user_id, recipient_id, display_name, body, is_deleted, created_at')
       .order('created_at', { ascending: true })
       .limit(400);
 
@@ -7064,16 +7118,20 @@ function render() {
         appendMessage(row, row && row.user_id === uid, { notify: true });
       })
       .on('postgres_changes', {
-        event: 'DELETE',
+        event: 'UPDATE',
         schema: 'public',
         table: 'team_messages'
       }, (payload) => {
-        if (!payload.old || !payload.old.id) return;
-        const el = msgsEl.querySelector(`[data-id="${payload.old.id}"]`);
-        if (el) el.remove();
-        knownIds.delete(payload.old.id);
-        selectedMsgIds.delete(payload.old.id);
-        updateSelectionUi();
+        const row = payload.new;
+        if (!row || !row.id) return;
+        const el = msgsEl.querySelector(`[data-id="${row.id}"]`);
+        if (el && row.is_deleted) {
+          el.classList.add('is-deleted');
+          const txtEl = el.querySelector('.rf-chat-msg-text');
+          if (txtEl) txtEl.textContent = '🚫 Esta mensagem foi apagada';
+          selectedMsgIds.delete(row.id);
+          updateSelectionUi();
+        }
       })
       .subscribe((status) => {
         setOnline(status === 'SUBSCRIBED');
@@ -7187,9 +7245,10 @@ function render() {
       user_id: session.user.id,
       display_name: display,
       body: body.slice(0, 2000),
-      recipient_id: dmPeer ? dmPeer.id : null
+      recipient_id: dmPeer ? dmPeer.id : null,
+      is_deleted: false
     };
-    const { data, error } = await client.from('team_messages').insert(payload).select('id, user_id, recipient_id, display_name, body, created_at').single();
+    const { data, error } = await client.from('team_messages').insert(payload).select('id, user_id, recipient_id, display_name, body, is_deleted, created_at').single();
     sendBtn.disabled = false;
     if (error) {
       alert('Não foi possível enviar: ' + error.message);
@@ -7215,7 +7274,7 @@ function render() {
     if (cancelSelectionBtn) cancelSelectionBtn.addEventListener('click', exitSelectionMode);
     if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', deleteSelectedMessages);
 
-    // Eventos do Modal Customizado de Exclusão
+    // Eventos do Modal Customizado
     if (deleteModalConfirm) deleteModalConfirm.addEventListener('click', () => closeDeleteConfirmationModal(true));
     if (deleteModalCancel) deleteModalCancel.addEventListener('click', () => closeDeleteConfirmationModal(false));
     if (deleteModalClose) deleteModalClose.addEventListener('click', () => closeDeleteConfirmationModal(false));
