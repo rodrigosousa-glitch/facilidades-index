@@ -3206,6 +3206,67 @@ header {
 .rf-chat-panel {
   z-index: 111;
 }
+/* ═══ MODO DE SELEÇÃO E EXCLUSÃO DE MENSAGENS NO CHAT ═══ */
+    .rf-chat-icon-btn.active-danger {
+      background: var(--red-dim) !important;
+      color: #f87171 !important;
+      border-color: rgba(248, 113, 113, 0.4) !important;
+      box-shadow: 0 0 10px rgba(248, 113, 113, 0.25);
+    }
+
+    .rf-chat-selection-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      animation: rf-fade-slide-in 0.2s ease forwards;
+    }
+
+    .rf-chat-selection-bar[data-show="true"] {
+      display: flex;
+    }
+
+    .rf-chat-selection-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .rf-chat-msg.is-selectable {
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+      position: relative;
+      padding-left: 36px;
+    }
+
+    .rf-chat-msg.is-selectable:hover {
+      border-color: rgba(248, 113, 113, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .rf-chat-msg.is-selected {
+      background: var(--red-dim) !important;
+      border-color: rgba(248, 113, 113, 0.5) !important;
+    }
+
+    .rf-chat-msg-checkbox {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      accent-color: #ef4444;
+      pointer-events: none;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -3820,6 +3881,29 @@ header {
   </div>
 </div>
 
+<!-- Modal: Confirmação de Exclusão de Mensagens do Chat -->
+<div id="rf-chat-delete-modal-overlay" class="macro-modal-overlay" data-open="false" aria-hidden="true" style="z-index: 300;">
+  <div class="macro-modal" role="dialog" aria-modal="true" aria-labelledby="rf-delete-modal-title" style="width: min(390px, calc(100vw - 32px)); border-color: rgba(248, 113, 113, 0.35);">
+    <div class="macro-modal-head">
+      <div class="macro-modal-head-left">
+        <h2 id="rf-delete-modal-title" class="title" style="border-left-color: var(--red); color: #fca5a5;">Apagar mensagens</h2>
+      </div>
+      <button type="button" id="rf-delete-modal-close" class="btn ghost macro-modal-close" title="Fechar" aria-label="Fechar">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="macro-modal-body">
+      <p id="rf-delete-modal-text" style="color: var(--text-secondary); font-size: 13px; line-height: 1.55; margin-bottom: 18px;">
+        Deseja apagar as mensagens selecionadas?
+      </p>
+      <div class="macro-form-actions">
+        <button type="button" id="rf-delete-modal-cancel" class="btn ghost" style="flex: 1;">Cancelar</button>
+        <button type="button" id="rf-delete-modal-confirm" class="btn danger" style="flex: 1; font-weight: 600;">Sim, apagar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- CHAT INTERNO DA EQUIPE -->
 <button type="button" id="rf-chat-fab" class="rf-chat-fab" title="Chat da equipe" aria-label="Abrir chat da equipe" data-open="false">
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
@@ -3840,6 +3924,15 @@ header {
       <button type="button" id="rf-chat-back" class="rf-chat-icon-btn rf-chat-back" title="Voltar ao chat da equipe" aria-label="Voltar ao chat da equipe" hidden>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
       </button>
+      <button type="button" id="rf-chat-delete" class="rf-chat-icon-btn" title="Selecionar mensagens para apagar" aria-label="Selecionar mensagens para apagar" hidden style="color:#f87171">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6l-1 14H6L5 6"></path>
+          <path d="M10 11v6"></path>
+          <path d="M14 11v6"></path>
+          <path d="M9 6V4h6v2"></path>
+        </svg>
+      </button>
       <button type="button" id="rf-chat-logout" class="rf-chat-icon-btn" title="Sair" aria-label="Sair" hidden>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
       </button>
@@ -3851,6 +3944,17 @@ header {
 
   <div id="rf-chat-userbar" class="rf-chat-userbar" data-show="false">
     <span>Conectado como <strong id="rf-chat-user-label">—</strong></span>
+  </div>
+
+  <div id="rf-chat-selection-bar" class="rf-chat-selection-bar" data-show="false">
+    <span id="rf-chat-selection-count">0 selecionada(s)</span>
+    <div class="rf-chat-selection-actions">
+      <button type="button" id="rf-chat-cancel-selection" class="btn small ghost">Cancelar</button>
+      <button type="button" id="rf-chat-confirm-delete" class="btn small danger" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4h6v2"></path></svg>
+        Apagar
+      </button>
+    </div>
   </div>
 
   <div id="rf-chat-tabs" class="rf-chat-tabs" data-show="false" role="tablist" aria-label="Conversas"></div>
@@ -6333,7 +6437,6 @@ function render() {
   buildMenu();
 })();
 </script>
-
 <!-- SCRIPT: CHAT INTERNO (Supabase) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -6364,16 +6467,30 @@ function render() {
   const userLabel = $('rf-chat-user-label');
   const logoutBtn = $('rf-chat-logout');
   const backBtn = $('rf-chat-back');
+  const deleteBtn = $('rf-chat-delete');
+  const selectionBar = $('rf-chat-selection-bar');
+  const selectionCountEl = $('rf-chat-selection-count');
+  const cancelSelectionBtn = $('rf-chat-cancel-selection');
+  const confirmDeleteBtn = $('rf-chat-confirm-delete');
   const titleEl = $('rf-chat-title');
   const modePill = $('rf-chat-mode-pill');
   const tabsEl = $('rf-chat-tabs');
   const authMsg = $('rf-chat-auth-msg');
+
+  // Elementos do Modal de Confirmação
+  const deleteModalOverlay = $('rf-chat-delete-modal-overlay');
+  const deleteModalText = $('rf-delete-modal-text');
+  const deleteModalConfirm = $('rf-delete-modal-confirm');
+  const deleteModalCancel = $('rf-delete-modal-cancel');
+  const deleteModalClose = $('rf-delete-modal-close');
+
   const DISPLAY_KEY = 'rf_chat_display_name_v1';
   const UNREAD_KEY = 'rf_chat_dm_unread_v1';
   const NOTIF_PERM_KEY = 'rf_chat_notif_perm_asked_v1';
 
   let audioCtx = null;
   let audioUnlocked = false;
+  let deleteModalResolver = null;
 
   function unlockAudio() {
     try {
@@ -6456,6 +6573,10 @@ function render() {
   let dmPeer = null;
   let dmContacts = new Map();
   let unreadMap = {};
+
+  // Modo de Seleção de Mensagens
+  let selectionMode = false;
+  let selectedMsgIds = new Set();
 
   function configured() {
     return !!(RF_CHAT_CONFIG.enabled && RF_CHAT_CONFIG.supabaseUrl && RF_CHAT_CONFIG.supabaseAnonKey);
@@ -6591,6 +6712,7 @@ function render() {
     panelOpen = false;
     panel.dataset.open = 'false';
     fab.dataset.open = 'false';
+    exitSelectionMode();
   }
 
   function scrollBottom() {
@@ -6625,6 +6747,10 @@ function render() {
   }
 
   function updateHeaderForMode() {
+    exitSelectionMode();
+    if (deleteBtn) {
+      deleteBtn.hidden = !session;
+    }
     if (dmPeer) {
       if (titleEl) titleEl.textContent = 'Privado · ' + dmPeer.name;
       subtitle.textContent = 'Só vocês dois';
@@ -6658,6 +6784,152 @@ function render() {
     updateHeaderForMode();
     renderDmTabs();
     loadHistory();
+  }
+
+  /* ═══ MODAL PERSONALIZADO DE CONFIRMAÇÃO DE EXCLUSÃO ═══ */
+
+  function promptDeleteConfirmation(count) {
+    return new Promise((resolve) => {
+      deleteModalResolver = resolve;
+      if (deleteModalText) {
+        deleteModalText.innerHTML =
+          `Tem certeza que deseja apagar <strong>${count} mensagem(ns)</strong> selecionada(s)?<br><br>` +
+          `<span style="color: var(--muted); font-size: 11.5px; display: block; line-height: 1.45;">` +
+          `⚠️ Esta ação apagará permanentemente as mensagens <strong>para todos no chat</strong> e não poderá ser desfeita.` +
+          `</span>`;
+      }
+      if (deleteModalOverlay) {
+        deleteModalOverlay.dataset.open = 'true';
+        deleteModalOverlay.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('macro-modal-open');
+      }
+      if (window.lucide) lucide.createIcons();
+    });
+  }
+
+  function closeDeleteConfirmationModal(result) {
+    if (deleteModalOverlay) {
+      deleteModalOverlay.dataset.open = 'false';
+      deleteModalOverlay.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('macro-modal-open');
+    }
+    if (deleteModalResolver) {
+      deleteModalResolver(result);
+      deleteModalResolver = null;
+    }
+  }
+
+  /* ═══ LÓGICA DE SELEÇÃO E EXCLUSÃO DE MENSAGENS ═══ */
+
+  function updateSelectionUi() {
+    if (selectionCountEl) {
+      selectionCountEl.textContent = selectedMsgIds.size + ' selecionada(s)';
+    }
+    if (confirmDeleteBtn) {
+      confirmDeleteBtn.disabled = selectedMsgIds.size === 0;
+    }
+    const msgs = msgsEl.querySelectorAll('.rf-chat-msg');
+    msgs.forEach((el) => {
+      const id = el.dataset.id;
+      const isSel = selectedMsgIds.has(id);
+      el.classList.toggle('is-selectable', selectionMode);
+      el.classList.toggle('is-selected', isSel);
+
+      let checkbox = el.querySelector('.rf-chat-msg-checkbox');
+      if (selectionMode) {
+        if (!checkbox) {
+          checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.className = 'rf-chat-msg-checkbox';
+          el.prepend(checkbox);
+        }
+        checkbox.checked = isSel;
+      } else if (checkbox) {
+        checkbox.remove();
+      }
+    });
+  }
+
+  function toggleSelectionMode() {
+    if (!session) return;
+    selectionMode = !selectionMode;
+    selectedMsgIds.clear();
+
+    if (deleteBtn) {
+      deleteBtn.classList.toggle('active-danger', selectionMode);
+    }
+    if (selectionBar) {
+      selectionBar.dataset.show = selectionMode ? 'true' : 'false';
+    }
+    updateSelectionUi();
+  }
+
+  function exitSelectionMode() {
+    selectionMode = false;
+    selectedMsgIds.clear();
+    if (deleteBtn) {
+      deleteBtn.classList.remove('active-danger');
+    }
+    if (selectionBar) {
+      selectionBar.dataset.show = 'false';
+    }
+    updateSelectionUi();
+  }
+
+  function toggleMsgSelection(msgId, el) {
+    if (!selectionMode || !msgId) return;
+    if (selectedMsgIds.has(msgId)) {
+      selectedMsgIds.delete(msgId);
+    } else {
+      selectedMsgIds.add(msgId);
+    }
+    updateSelectionUi();
+  }
+
+  async function deleteSelectedMessages() {
+    if (!session || !client || selectedMsgIds.size === 0) return;
+
+    const count = selectedMsgIds.size;
+    const confirmed = await promptDeleteConfirmation(count);
+
+    if (!confirmed) return;
+
+    confirmDeleteBtn.disabled = true;
+    const idsToDelete = Array.from(selectedMsgIds);
+
+    try {
+      const { data, error } = await client
+        .from('team_messages')
+        .delete()
+        .in('id', idsToDelete)
+        .select();
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        alert('O banco de dados não permitiu apagar. Verifique se executou o comando SQL de permissão (RLS) no Supabase.');
+        return;
+      }
+
+      idsToDelete.forEach((id) => {
+        const el = msgsEl.querySelector(`[data-id="${id}"]`);
+        if (el) el.remove();
+        knownIds.delete(id);
+      });
+
+      exitSelectionMode();
+
+      if (msgsEl.children.length === 0) {
+        msgsEl.innerHTML = dmPeer
+          ? '<div class="rf-chat-empty">Nenhuma mensagem privada com <strong>' + esc(dmPeer.name) + '</strong>.</div>'
+          : '<div class="rf-chat-empty">Nenhuma mensagem ainda.<br>Seja o primeiro a escrever para a equipe.</div>';
+      }
+    } catch (err) {
+      console.error('Erro ao excluir mensagens:', err);
+      alert('Não foi possível excluir as mensagens selecionadas:\n' + (err.message || 'Erro desconhecido.'));
+    } finally {
+      if (confirmDeleteBtn) confirmDeleteBtn.disabled = false;
+    }
   }
 
   function unreadKeyForRow(row) {
@@ -6698,6 +6970,7 @@ function render() {
     const el = document.createElement('div');
     el.className = 'rf-chat-msg' + (mine ? ' mine' : '');
     el.dataset.id = row.id;
+
     el.innerHTML =
       '<div class="rf-chat-msg-meta">' +
         '<span class="rf-chat-msg-author"' +
@@ -6707,7 +6980,12 @@ function render() {
         '<span class="rf-chat-msg-time">' + esc(formatTime(row.created_at)) + '</span>' +
       '</div>' +
       '<div class="rf-chat-msg-text">' + esc(row.body) + '</div>';
+
     msgsEl.appendChild(el);
+
+    if (selectionMode) {
+      updateSelectionUi();
+    }
 
     if (!mine && opts.notify && rowIsUnreadForMe(row)) {
       const key = unreadKeyForRow(row);
@@ -6723,6 +7001,7 @@ function render() {
   async function loadHistory() {
     msgsEl.innerHTML = '';
     knownIds.clear();
+    exitSelectionMode();
     if (!client || !session) return;
 
     const { data, error } = await client
@@ -6784,6 +7063,18 @@ function render() {
         const uid = session && session.user && session.user.id;
         appendMessage(row, row && row.user_id === uid, { notify: true });
       })
+      .on('postgres_changes', {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'team_messages'
+      }, (payload) => {
+        if (!payload.old || !payload.old.id) return;
+        const el = msgsEl.querySelector(`[data-id="${payload.old.id}"]`);
+        if (el) el.remove();
+        knownIds.delete(payload.old.id);
+        selectedMsgIds.delete(payload.old.id);
+        updateSelectionUi();
+      })
       .subscribe((status) => {
         setOnline(status === 'SUBSCRIBED');
       });
@@ -6810,10 +7101,12 @@ function render() {
     dmPeer = null;
     dmContacts = new Map();
     setOnline(false);
+    exitSelectionMode();
     if (titleEl) titleEl.textContent = 'Chat da equipe';
     subtitle.textContent = 'Rodrigo Facilidades';
     if (modePill) modePill.dataset.show = 'false';
     if (backBtn) backBtn.hidden = true;
+    if (deleteBtn) deleteBtn.hidden = true;
     if (tabsEl) { tabsEl.dataset.show = 'false'; tabsEl.innerHTML = ''; }
     if (channel && client) {
       try { client.removeChannel(channel); } catch (e) {}
@@ -6916,6 +7209,28 @@ function render() {
     fab.addEventListener('click', openPanel);
     $('rf-chat-close').addEventListener('click', closePanel);
     if (backBtn) backBtn.addEventListener('click', backToTeamChat);
+    
+    // Botão de lixeira e ações da barra de exclusão
+    if (deleteBtn) deleteBtn.addEventListener('click', toggleSelectionMode);
+    if (cancelSelectionBtn) cancelSelectionBtn.addEventListener('click', exitSelectionMode);
+    if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', deleteSelectedMessages);
+
+    // Eventos do Modal Customizado de Exclusão
+    if (deleteModalConfirm) deleteModalConfirm.addEventListener('click', () => closeDeleteConfirmationModal(true));
+    if (deleteModalCancel) deleteModalCancel.addEventListener('click', () => closeDeleteConfirmationModal(false));
+    if (deleteModalClose) deleteModalClose.addEventListener('click', () => closeDeleteConfirmationModal(false));
+    if (deleteModalOverlay) {
+      deleteModalOverlay.addEventListener('click', (e) => {
+        if (e.target === deleteModalOverlay) closeDeleteConfirmationModal(false);
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && deleteModalOverlay && deleteModalOverlay.dataset.open === 'true') {
+        closeDeleteConfirmationModal(false);
+      }
+    });
+
     if (tabsEl) {
       tabsEl.addEventListener('click', (e) => {
         const tab = e.target.closest('.rf-chat-tab');
@@ -6932,13 +7247,23 @@ function render() {
       if (client) await client.auth.signOut();
       leaveChatUi();
     });
+
     msgsEl.addEventListener('click', (e) => {
+      const msgItem = e.target.closest('.rf-chat-msg');
+      if (selectionMode && msgItem) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleMsgSelection(msgItem.dataset.id, msgItem);
+        return;
+      }
+
       const author = e.target.closest('.rf-chat-msg-author[data-clickable="true"]');
       if (!author) return;
       const id = author.getAttribute('data-user-id');
       const name = author.getAttribute('data-user-name') || 'Colega';
       if (id) openPrivateChat(id, name);
     });
+
     compose.addEventListener('submit', sendMessage);
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -6983,7 +7308,6 @@ function render() {
   }
 })();
 </script>
-
 <!-- SCRIPT: DOCUMENTAÇÃO (Google Docs viewer) -->
 <script>
 (() => {
