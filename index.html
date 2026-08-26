@@ -3837,7 +3837,7 @@ header {
           </div>
           <div class="group">
             <label for="extras-hours">Duração (HH:MM)</label>
-            <input id="extras-hours" type="text" inputmode="numeric" maxlength="5" pattern="[0-9]{1,2}:[0-5][0-9]" placeholder="Ex.: 01:30" required>
+            <input id="extras-hours" type="text" inputmode="numeric" maxlength="7" pattern="[0-9]{1,4}:[0-5][0-9]" placeholder="Ex.: 49:00 ou 01:30" required>
           </div>
           <div class="group">
             <label>Tipo de Extra</label>
@@ -5030,11 +5030,11 @@ function render() {
   }
 
   function parseDuration(val) {
-    const match = /^(\d{1,2}):([0-5]\d)$/.exec(String(val || '').trim());
+    const match = /^(\d+):([0-5]\d)$/.exec(String(val || '').trim());
     if (!match) return null;
     const h = Number(match[1]), m = Number(match[2]);
     const tot = h * 60 + m;
-    return tot < 1 || tot > 24 * 60 ? null : tot;
+    return tot < 1 ? null : tot;
   }
 
   function formatDuration(mins) {
